@@ -6,3 +6,21 @@ id = "-ewMtEzLxhmqWK_YQZ4bn"
 uri = "file://attached_assets/hero-3d.png"
 type = "image"
 title = "pixelpeek hero 3d box"
+
+[[generated]]
+id = "jVRHAgbnOqwD_OUq920FW"
+uri = "file://attached_assets/carrier-image.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "QxtBpu1qttiim2PwuhBOb"
+uri = "file://attached_assets/carrier-audio.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "KFuDYqmxvqV9QvDWJxb_J"
+uri = "file://attached_assets/carrier-video.png"
+type = "image"
+title = "generated_image"

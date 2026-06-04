@@ -3,6 +3,9 @@ import { Link } from "wouter";
 import { Eye, Lock, Sparkles, Star, ArrowRight, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import heroImg from "@assets/hero-3d.png";
+import carrierImageImg from "@assets/carrier-image.png";
+import carrierAudioImg from "@assets/carrier-audio.png";
+import carrierVideoImg from "@assets/carrier-video.png";
 
 
 export default function Landing() {
@@ -208,33 +211,66 @@ export default function Landing() {
               title: "Encode",
               desc: "Slip a secret into the LSBs of any image, the samples of a WAV, or the tail of a video. Optional password locks it with AES-256.",
               href: "/encode",
+              cardBg: "#FF6B6B",
+              iconBg: "#fff",
+              btnBg: "#0F172A",
+              btnText: "#fff",
+              accent: "#0F172A",
             },
             {
               icon: Zap,
               title: "Decode",
               desc: "Got a file with a whisper inside? Drop it in. Reveal the hidden message in a single click.",
               href: "/decode",
+              cardBg: "#7DD3FC",
+              iconBg: "#fff",
+              btnBg: "#0F172A",
+              btnText: "#fff",
+              accent: "#0F172A",
             },
             {
               icon: Eye,
               title: "Peek",
               desc: "Run a quick LSB analysis. Get a likelihood score and decide if a picture is hiding something.",
               href: "/peek",
+              cardBg: "#FDE047",
+              iconBg: "#fff",
+              btnBg: "#0F172A",
+              btnText: "#fff",
+              accent: "#0F172A",
             },
           ].map((tool, i) => (
             <motion.div
               key={tool.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-white p-8 rounded-2xl border-2 border-[#0F172A] shadow-[6px_6px_0_0_#0F172A] flex flex-col gap-4"
+              transition={{ delay: i * 0.12 }}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              style={{ backgroundColor: tool.cardBg }}
+              className="p-8 rounded-3xl border-2 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] flex flex-col gap-5"
             >
-              <tool.icon className="w-8 h-8 text-[#0F172A]" />
-              <h3 className="text-2xl font-black text-[#0F172A]" style={{ fontFamily: "Outfit, sans-serif" }}>{tool.title}</h3>
-              <p className="text-[#0F172A]/60 font-medium leading-relaxed flex-1">{tool.desc}</p>
+              {/* Icon badge */}
+              <div
+                style={{ backgroundColor: tool.iconBg }}
+                className="w-14 h-14 rounded-2xl border-2 border-[#0F172A] shadow-[3px_3px_0_0_#0F172A] flex items-center justify-center"
+              >
+                <tool.icon className="w-7 h-7 text-[#0F172A]" />
+              </div>
+
+              <div className="flex-1">
+                <h3 className="text-3xl font-black text-[#0F172A] mb-3" style={{ fontFamily: "Outfit, sans-serif" }}>
+                  {tool.title}
+                </h3>
+                <p className="text-[#0F172A]/75 font-medium leading-relaxed text-[15px]">{tool.desc}</p>
+              </div>
+
               <Link href={tool.href}>
-                <button data-testid={`tool-link-${tool.title.toLowerCase()}`} className="font-bold text-sm underline underline-offset-4 decoration-2 decoration-[#FF6B6B] hover:text-[#FF6B6B] transition-colors">
+                <button
+                  data-testid={`tool-link-${tool.title.toLowerCase()}`}
+                  style={{ backgroundColor: tool.btnBg, color: tool.btnText }}
+                  className="w-full py-3.5 rounded-full border-2 border-[#0F172A] shadow-[3px_3px_0_0_#0F172A] font-black text-base hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all"
+                >
                   Open {tool.title} →
                 </button>
               </Link>
@@ -262,9 +298,9 @@ export default function Landing() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { title: "Images", sub: "LSB · PNG / BMP / JPG", bg: "bg-[#FDE047]", delay: 0 },
-            { title: "Audio", sub: "LSB · WAV (16-bit PCM)", bg: "bg-[#86EFAC]", delay: 0.15 },
-            { title: "Video", sub: "Append tail · MP4 / MOV / WEBM", bg: "bg-[#F9A8D4]", delay: 0.3 },
+            { title: "Images", sub: "LSB · PNG / BMP / JPG", bg: "bg-[#FDE047]", delay: 0, img: carrierImageImg },
+            { title: "Audio", sub: "LSB · WAV (16-bit PCM)", bg: "bg-[#86EFAC]", delay: 0.15, img: carrierAudioImg },
+            { title: "Video", sub: "Append tail · MP4 / MOV / WEBM", bg: "bg-[#F9A8D4]", delay: 0.3, img: carrierVideoImg },
           ].map((c) => (
             <motion.div
               key={c.title}
@@ -272,9 +308,16 @@ export default function Landing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: c.delay }}
-              animate={{ y: [0, -8, 0] }}
-              className={`${c.bg} p-8 rounded-2xl border-2 border-[#0F172A] shadow-[6px_6px_0_0_#0F172A] flex flex-col gap-3 min-h-[180px]`}
+              className={`${c.bg} p-8 rounded-3xl border-2 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] flex flex-col gap-4 overflow-hidden relative`}
             >
+              {/* cute illustration */}
+              <motion.img
+                src={c.img}
+                alt={c.title}
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Infinity, ease: "easeInOut", duration: 3 + Math.random() }}
+                className="w-36 h-36 object-contain mx-auto drop-shadow-lg"
+              />
               <h3 className="text-2xl font-black text-[#0F172A]" style={{ fontFamily: "Outfit, sans-serif" }}>{c.title}</h3>
               <p className="font-mono text-sm font-bold text-[#0F172A]/70">{c.sub}</p>
             </motion.div>
@@ -336,11 +379,6 @@ export default function Landing() {
             <Link href="/register">
               <button data-testid="cta-encode" className="px-8 py-4 bg-[#FDE047] rounded-full border-2 border-[#0F172A] font-black text-[#0F172A] shadow-[4px_4px_0_0_#0F172A] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all whitespace-nowrap">
                 Encode now
-              </button>
-            </Link>
-            <Link href="/login">
-              <button data-testid="cta-history" className="px-8 py-4 bg-white rounded-full border-2 border-[#0F172A] font-black text-[#0F172A] shadow-[4px_4px_0_0_#0F172A] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all whitespace-nowrap">
-                View history
               </button>
             </Link>
           </div>
