@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "-ewMtEzLxhmqWK_YQZ4bn"
+uri = "file://attached_assets/hero-3d.png"
+type = "image"
+title = "pixelpeek hero 3d box"

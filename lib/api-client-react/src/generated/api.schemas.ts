@@ -9,10 +9,33 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface RegisterBody {
+  /** @minLength 1 */
+  name: string;
+  email: string;
+  /** @minLength 6 */
+  password: string;
+}
+
+export interface LoginBody {
+  email: string;
+  password: string;
+}
+
+export interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
+export interface AuthResult {
+  token: string;
+  user: UserProfile;
+}
+
 export interface EncodeInput {
-  /** The secret message to hide */
   message: string;
-  /** Optional passphrase for AES-256 encryption */
   key?: string;
 }
 
@@ -26,7 +49,6 @@ export const EncodeResultCarrier = {
 } as const;
 
 export interface EncodeResult {
-  /** URL to download the encoded file */
   downloadUrl: string;
   filename: string;
   carrier: EncodeResultCarrier;
@@ -36,7 +58,6 @@ export interface EncodeResult {
 }
 
 export interface DecodeInput {
-  /** Optional passphrase used during encoding */
   key?: string;
 }
 
@@ -55,9 +76,6 @@ export interface DecodeResult {
   encrypted: boolean;
 }
 
-/**
- * File to analyze for hidden content
- */
 export interface DetectInput { [key: string]: unknown }
 
 export type DetectResultVerdict = typeof DetectResultVerdict[keyof typeof DetectResultVerdict];
@@ -79,21 +97,15 @@ export const DetectResultCarrier = {
 } as const;
 
 export interface StegoFeatures {
-  /** Shannon entropy of byte distribution (0-8) */
   entropy: number;
-  /** Mean of LSB plane (stego ~0.5) */
   lsbRatio: number;
-  /** Deviation from 0.5 (stego ~0) */
   lsbDeviation: number;
-  /** Chi-square pairs-of-values test, normalized */
   chiSquare: number;
-  /** Stdev of LSB ratio across 64-sample blocks */
   blockLsbStdev: number;
 }
 
 export interface DetectResult {
   verdict: DetectResultVerdict;
-  /** Probability of steganographic content (0-1) */
   probability: number;
   carrier: DetectResultCarrier;
   features: StegoFeatures;

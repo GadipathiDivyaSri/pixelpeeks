@@ -9,7 +9,6 @@ import * as zod from 'zod';
 
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -18,16 +17,60 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * Encodes a secret message into an image, audio, or video file using LSB steganography
+ * @summary Register a new account
+ */
+
+export const registerBodyPasswordMin = 6;
+
+
+
+export const RegisterBody = zod.object({
+  "name": zod.string().min(1),
+  "email": zod.string().email(),
+  "password": zod.string().min(registerBodyPasswordMin)
+})
+
+
+/**
+ * @summary Log in with email and password
+ */
+export const LoginBody = zod.object({
+  "email": zod.string().email(),
+  "password": zod.string()
+})
+
+export const LoginResponse = zod.object({
+  "token": zod.string(),
+  "user": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Get current user
+ */
+export const GetMeResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Hide a message in a carrier file
  */
 export const EncodeFileBody = zod.object({
-  "message": zod.string().describe('The secret message to hide'),
-  "key": zod.string().optional().describe('Optional passphrase for AES-256 encryption')
+  "message": zod.string(),
+  "key": zod.string().optional()
 })
 
 export const EncodeFileResponse = zod.object({
-  "downloadUrl": zod.string().describe('URL to download the encoded file'),
+  "downloadUrl": zod.string(),
   "filename": zod.string(),
   "carrier": zod.enum(['image', 'audio', 'video']),
   "bytesUsed": zod.number(),
@@ -37,11 +80,10 @@ export const EncodeFileResponse = zod.object({
 
 
 /**
- * Decodes a secret message from an encoded image, audio, or video file
  * @summary Reveal a hidden message from a carrier file
  */
 export const DecodeFileBody = zod.object({
-  "key": zod.string().optional().describe('Optional passphrase used during encoding')
+  "key": zod.string().optional()
 })
 
 export const DecodeFileResponse = zod.object({
@@ -52,29 +94,27 @@ export const DecodeFileResponse = zod.object({
 
 
 /**
- * Runs steganalysis using entropy, LSB ratio, chi-square, and block-LSB-stdev features
  * @summary Analyze a file for hidden content
  */
 export const DetectSteganographyBody = zod.object({
 
-}).passthrough().describe('File to analyze for hidden content')
+}).passthrough()
 
 export const DetectSteganographyResponse = zod.object({
   "verdict": zod.enum(['CLEAN', 'SUSPECT', 'STEGO']),
-  "probability": zod.number().describe('Probability of steganographic content (0-1)'),
+  "probability": zod.number(),
   "carrier": zod.enum(['image', 'audio', 'video']),
   "features": zod.object({
-  "entropy": zod.number().describe('Shannon entropy of byte distribution (0-8)'),
-  "lsbRatio": zod.number().describe('Mean of LSB plane (stego ~0.5)'),
-  "lsbDeviation": zod.number().describe('Deviation from 0.5 (stego ~0)'),
-  "chiSquare": zod.number().describe('Chi-square pairs-of-values test, normalized'),
-  "blockLsbStdev": zod.number().describe('Stdev of LSB ratio across 64-sample blocks')
+  "entropy": zod.number(),
+  "lsbRatio": zod.number(),
+  "lsbDeviation": zod.number(),
+  "chiSquare": zod.number(),
+  "blockLsbStdev": zod.number()
 })
 })
 
 
 /**
- * Returns totals for all operations performed
  * @summary Get operation statistics
  */
 export const GetStatsResponse = zod.object({
@@ -87,7 +127,6 @@ export const GetStatsResponse = zod.object({
 
 
 /**
- * Returns a timeline of recent encode/decode/detect operations
  * @summary List recent operations
  */
 export const listEventsQueryLimitDefault = 50;

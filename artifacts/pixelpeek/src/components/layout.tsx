@@ -1,93 +1,146 @@
 import { Link, useLocation } from "wouter";
-import { Eye, FileLock, Search, Clock, Menu, Shield } from "lucide-react";
+import { Eye, FileLock, Search, Clock, Menu, X, Home, LogOut, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/auth";
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   const navItems = [
-    { href: "/", label: "Home", icon: Shield },
+    { href: "/dashboard", label: "Home", icon: Home },
     { href: "/encode", label: "Encode", icon: FileLock },
     { href: "/decode", label: "Decode", icon: Eye },
     { href: "/peek", label: "Peek", icon: Search },
     { href: "/history", label: "History", icon: Clock },
   ];
 
-  return (
-    <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background w-full">
-      {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b-2 border-border bg-sidebar z-50 relative">
-        <div className="flex items-center gap-2 font-display font-bold text-xl">
-          <Eye className="w-6 h-6" /> PixelPeek
-        </div>
-        <button 
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2 border-2 border-border rounded-xl bg-white shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      </div>
+  const isActive = (href: string) => location === href;
 
-      {/* Mobile Sidebar Overlay */}
+  return (
+    <div className="min-h-screen bg-[#FDFBF7] flex">
+      {/* ── Backdrop ─────────────────────────────────────────── */}
       <AnimatePresence>
-        {isSidebarOpen && (
-          <motion.div 
+        {sidebarOpen && (
+          <motion.div
+            key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/40 z-40"
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <motion.div 
-        className={`fixed md:sticky top-0 left-0 h-[100dvh] w-64 bg-sidebar border-r-2 border-border p-6 flex flex-col gap-8 z-50 transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
-      >
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2 font-display font-bold text-2xl">
-            <motion.div
-              animate={{ rotate: [-5, 5, -5] }}
-              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            >
-              <Eye className="w-8 h-8 text-primary" />
-            </motion.div>
-            PixelPeek
-          </div>
-          <div className="font-mono text-xs text-muted-foreground font-bold tracking-widest uppercase">
-            hide · seek · peek
-          </div>
-        </div>
-
-        <nav className="flex flex-col gap-3 flex-1">
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <div 
-                data-testid={`link-nav-${item.label.toLowerCase()}`}
-                onClick={() => setIsSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-full border-2 border-border font-bold transition-all cursor-pointer ${
-                  location === item.href 
-                    ? "bg-primary text-white shadow-[4px_4px_0_0_#0F172A] translate-x-[-2px] translate-y-[-2px]" 
-                    : "bg-white shadow-[3px_3px_0_0_#0F172A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A]"
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.label}
+      {/* ── Sidebar drawer ───────────────────────────────────── */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.aside
+            key="sidebar"
+            initial={{ x: -280 }}
+            animate={{ x: 0 }}
+            exit={{ x: -280 }}
+            transition={{ type: "spring", stiffness: 320, damping: 30 }}
+            className="fixed top-0 left-0 h-full w-64 bg-[#FEF08A] border-r-2 border-[#0F172A] z-50 flex flex-col p-6 gap-6 shadow-[8px_0_0_0_#0F172A]"
+          >
+            {/* Logo + close */}
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-2">
+                  <motion.div
+                    animate={{ rotate: [-5, 5, -5] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                  >
+                    <Eye className="w-7 h-7 text-[#FF6B6B]" />
+                  </motion.div>
+                  <span className="font-black text-xl text-[#0F172A]" style={{ fontFamily: "Outfit, sans-serif" }}>
+                    PixelPeek
+                  </span>
+                </div>
+                <span className="font-mono text-[10px] font-bold tracking-widest text-[#0F172A]/50 uppercase pl-9">
+                  hide · seek · peek
+                </span>
               </div>
-            </Link>
-          ))}
-        </nav>
-      </motion.div>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-1.5 rounded-lg border-2 border-[#0F172A] bg-white shadow-[2px_2px_0_0_#0F172A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-      {/* Main Content */}
-      <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden min-h-[100dvh]">
-        <div className="p-4 md:p-8 w-full max-w-5xl mx-auto">
+            {/* Nav */}
+            <nav className="flex flex-col gap-2 flex-1">
+              {navItems.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <div
+                    data-testid={`nav-${item.label.toLowerCase()}`}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-full border-2 border-[#0F172A] font-bold cursor-pointer transition-all text-sm ${
+                      isActive(item.href)
+                        ? "bg-[#FF6B6B] text-white shadow-[4px_4px_0_0_#0F172A]"
+                        : "bg-white text-[#0F172A] shadow-[3px_3px_0_0_#0F172A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A]"
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    {item.label}
+                  </div>
+                </Link>
+              ))}
+            </nav>
+
+            {/* User + Logout */}
+            <div className="flex flex-col gap-3 pt-4 border-t-2 border-[#0F172A]/20">
+              {user && (
+                <div className="bg-[#FDE047] px-4 py-2.5 rounded-xl border-2 border-[#0F172A] shadow-[2px_2px_0_0_#0F172A]">
+                  <p className="font-black text-xs text-[#0F172A] truncate">{user.name}</p>
+                  <p className="font-mono text-[10px] text-[#0F172A]/60 truncate">{user.email}</p>
+                </div>
+              )}
+              <button
+                data-testid="button-logout"
+                onClick={() => { logout(); setSidebarOpen(false); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-[#0F172A] bg-[#F9A8D4] font-bold text-sm shadow-[3px_3px_0_0_#0F172A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A] transition-all"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* ── Main area ─────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 bg-[#FDFBF7] border-b-2 border-[#0F172A] px-4 py-3 flex items-center gap-4">
+          <button
+            data-testid="button-toggle-sidebar"
+            onClick={() => setSidebarOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full border-2 border-[#0F172A] bg-[#FEF08A] font-bold text-sm shadow-[3px_3px_0_0_#0F172A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A] transition-all"
+          >
+            <Menu className="w-4 h-4" />
+            <span className="hidden sm:inline">Dashboard</span>
+            <ChevronRight className="w-3 h-3" />
+          </button>
+
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm font-medium text-[#0F172A]/50">
+            <Eye className="w-4 h-4 text-[#FF6B6B]" />
+            <span className="font-black text-[#0F172A]" style={{ fontFamily: "Outfit, sans-serif" }}>PixelPeek</span>
+            <span>/</span>
+            <span className="capitalize">{location.replace("/", "") || "home"}</span>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
