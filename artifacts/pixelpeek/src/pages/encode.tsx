@@ -180,13 +180,13 @@ export default function Encode() {
           </div>
         )}
 
-        <div className="bg-card p-6 md:p-8 rounded-[2rem] border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))] flex flex-col gap-6">
+        <div className="bg-[#FFF0F6] dark:bg-card border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] rounded-[2rem] p-6 md:p-8 flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <label className="font-black text-lg flex items-center gap-2">
-                💌 Secret Message <span className="text-primary">*</span>
+              <label className="font-black text-lg flex items-center gap-2 text-[#0F172A] dark:text-foreground">
+                💌 Secret Message <span className="text-[#FB7185]">*</span>
               </label>
-              <span className={`font-mono text-xs font-bold ${charsLeft < 200 ? "text-destructive" : "text-muted-foreground"}`}>
+              <span className={`font-mono text-xs font-bold ${charsLeft < 200 ? "text-destructive" : "text-[#0F172A]/50 dark:text-muted-foreground"}`}>
                 {charsLeft} left
               </span>
             </div>
@@ -195,47 +195,52 @@ export default function Encode() {
               value={message}
               onChange={(e) => setMessage(e.target.value.slice(0, MAX_CHARS))}
               placeholder="Whisper something only your friend can hear…"
-              className="w-full min-h-[140px] p-4 rounded-xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all resize-none font-medium text-base outline-none bg-background"
+              className="w-full min-h-[140px] p-4 rounded-xl border-2 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all resize-none font-medium text-base outline-none bg-white dark:bg-background"
               required
             />
             <div className="flex flex-wrap gap-2">
-              {["💌 Meet me at 7 PM", "🌸 Happy Birthday!", "🎂 Date night this Friday?", "☕ Coffee date tomorrow?"].map(s => (
+              {[
+                { label: "💌 Meet me at 7 PM", bg: "bg-[#FBCFE8]" },
+                { label: "🌸 Happy Birthday!", bg: "bg-[#BBF7D0]" },
+                { label: "🎂 Date night this Friday?", bg: "bg-[#FEF08A]" },
+                { label: "☕ Coffee date tomorrow?", bg: "bg-[#BAE6FD]" },
+              ].map(s => (
                 <button
-                  key={s}
+                  key={s.label}
                   type="button"
-                  onClick={() => setMessage(s)}
-                  className="text-xs font-bold px-3 py-1 bg-muted rounded-full border border-border hover:bg-[hsl(var(--chart-1))/20] transition-colors"
+                  onClick={() => setMessage(s.label)}
+                  className={`text-xs font-bold px-3 py-1.5 ${s.bg} rounded-full border-2 border-[#0F172A] shadow-[2px_2px_0_0_#0F172A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all text-[#0F172A]`}
                 >
-                  {s}
+                  {s.label}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-black text-lg flex items-center gap-2">
-              🔒 Passphrase <span className="text-muted-foreground text-sm font-medium">(Optional — AES-256)</span>
+            <label className="font-black text-lg flex items-center gap-2 text-[#0F172A] dark:text-foreground">
+              🔒 Passphrase <span className="text-[#0F172A]/50 dark:text-muted-foreground text-sm font-medium">(Optional — AES-256)</span>
             </label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0F172A]/40 dark:text-muted-foreground" />
               <input
                 data-testid="input-passphrase"
                 type={showPass ? "text" : "password"}
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder="Add extra encryption..."
-                className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-background"
+                className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-white dark:bg-background"
               />
               <button
                 type="button"
                 onClick={() => setShowPass(!showPass)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0F172A]/40 hover:text-[#0F172A] transition-colors dark:text-muted-foreground dark:hover:text-foreground"
               >
                 {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
             {passphrase && (
-              <div className="flex items-center gap-2 text-xs font-bold text-[hsl(var(--chart-3))]">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#16A34A]">
                 <CheckCircle className="w-3.5 h-3.5" />
                 AES-256-GCM encryption will be applied
               </div>
@@ -247,7 +252,7 @@ export default function Encode() {
           data-testid="button-submit-encode"
           type="submit"
           disabled={!file || !message || encodeFile.isPending || capacityPct > 100}
-          className="bg-primary text-white text-2xl font-black py-5 rounded-2xl border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_hsl(var(--border))] transition-all flex justify-center items-center gap-3"
+          className="bg-[#FB7185] text-white text-2xl font-black py-5 rounded-2xl border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_#0F172A] transition-all flex justify-center items-center gap-3"
         >
           {encodeFile.isPending ? (
             <>

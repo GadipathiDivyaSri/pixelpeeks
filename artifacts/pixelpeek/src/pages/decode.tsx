@@ -162,25 +162,25 @@ export default function Decode() {
           )}
         </div>
 
-        <div className="bg-card p-6 md:p-8 rounded-[2rem] border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))]">
+        <div className="bg-[#EEF6FF] dark:bg-card border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] rounded-[2rem] p-6 md:p-8">
           <div className="flex flex-col gap-2">
-            <label className="font-black text-lg flex items-center gap-2">
-              🔒 Passphrase <span className="text-muted-foreground text-sm font-medium">(If the message was encrypted)</span>
+            <label className="font-black text-lg flex items-center gap-2 text-[#0F172A] dark:text-foreground">
+              🔒 Passphrase <span className="text-[#0F172A]/50 dark:text-muted-foreground text-sm font-medium">(If the message was encrypted)</span>
             </label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0F172A]/40 dark:text-muted-foreground" />
               <input
                 data-testid="input-passphrase"
                 type={showPass ? "text" : "password"}
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder="Enter decryption key..."
-                className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-background"
+                className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-white dark:bg-background"
               />
               <button
                 type="button"
                 onClick={() => setShowPass(!showPass)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0F172A]/40 hover:text-[#0F172A] transition-colors dark:text-muted-foreground dark:hover:text-foreground"
               >
                 {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -192,7 +192,7 @@ export default function Decode() {
           data-testid="button-submit-decode"
           type="submit"
           disabled={!file || decodeFile.isPending}
-          className="bg-[hsl(var(--chart-4))] text-foreground text-2xl font-black py-5 rounded-2xl border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_hsl(var(--border))] transition-all flex justify-center items-center gap-3"
+          className="bg-[#60A5FA] text-white text-2xl font-black py-5 rounded-2xl border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_#0F172A] transition-all flex justify-center items-center gap-3"
         >
           {decodeFile.isPending ? (
             <>

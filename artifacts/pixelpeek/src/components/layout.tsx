@@ -57,7 +57,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: "spring", stiffness: 320, damping: 30 }}
-            className="fixed top-0 left-0 h-full w-68 bg-sidebar border-r-2 border-border z-50 flex flex-col p-6 gap-6 shadow-[8px_0_0_0_hsl(var(--border))]"
+            className="fixed top-0 left-0 h-full w-68 bg-[#F3EEFF] dark:bg-sidebar border-r-2 border-border z-50 flex flex-col p-6 gap-6 shadow-[8px_0_0_0_hsl(var(--border))]"
           >
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
@@ -90,10 +90,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <div
                     data-testid={`nav-${item.label.toLowerCase()}`}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-full border-2 border-border font-bold cursor-pointer transition-all text-sm ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-full border-2 border-[#0F172A] font-bold cursor-pointer transition-all text-sm text-[#0F172A] ${
                       isActive(item.href)
-                        ? `${item.color} text-foreground shadow-[4px_4px_0_0_hsl(var(--border))]`
-                        : "bg-card text-foreground shadow-[3px_3px_0_0_hsl(var(--border))] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_hsl(var(--border))]"
+                        ? `${item.color} shadow-[4px_4px_0_0_#0F172A] translate-x-0 translate-y-0`
+                        : `${item.color} opacity-50 shadow-[3px_3px_0_0_#0F172A] hover:opacity-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A]`
                     }`}
                   >
                     <item.icon className="w-4 h-4 flex-shrink-0" />
@@ -105,15 +105,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
             <div className="flex flex-col gap-3 pt-4 border-t-2 border-border/30">
               {user && (
-                <div className="bg-muted px-4 py-2.5 rounded-xl border-2 border-border shadow-[2px_2px_0_0_hsl(var(--border))]">
-                  <p className="font-black text-xs text-foreground truncate">{user.name}</p>
-                  <p className="font-mono text-[10px] text-foreground/60 truncate">{user.email}</p>
+                <div className="bg-[#D1FAE5] border-2 border-[#0F172A] shadow-[2px_2px_0_0_#0F172A] px-4 py-2.5 rounded-xl">
+                  <p className="font-black text-xs text-[#0F172A] truncate">{user.name}</p>
+                  <p className="font-mono text-[10px] text-[#0F172A]/60 truncate">{user.email}</p>
                 </div>
               )}
 
               <button
                 onClick={() => setDark(!dark)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-border bg-card font-bold text-sm shadow-[3px_3px_0_0_hsl(var(--border))] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_hsl(var(--border))] transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-[#0F172A] bg-[#FEF9C3] text-[#0F172A] font-bold text-sm shadow-[3px_3px_0_0_#0F172A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A] transition-all"
               >
                 {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                 {dark ? "Light Mode" : "Dark Mode"}
@@ -122,7 +122,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <button
                 data-testid="button-logout"
                 onClick={() => { logout(); setSidebarOpen(false); }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-border bg-[hsl(var(--chart-1))] text-white font-bold text-sm shadow-[3px_3px_0_0_hsl(var(--border))] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_hsl(var(--border))] transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-[#0F172A] bg-[#FB7185] text-white font-bold text-sm shadow-[3px_3px_0_0_#0F172A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A] transition-all"
               >
                 <LogOut className="w-4 h-4" />
                 Logout
