@@ -233,42 +233,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sticker wall */}
-      <section className="flex flex-col gap-6">
-        <h2 className="text-3xl md:text-4xl font-black text-center" style={{ fontFamily: "Outfit, sans-serif" }}>
-          Pick your vibe 🎨
-        </h2>
-        <div className="flex flex-wrap justify-center gap-3">
-          {[
-            { e: "🐣", label: "just hatched" },
-            { e: "🫐", label: "blueberry mode" },
-            { e: "🌵", label: "prickly & private" },
-            { e: "🦊", label: "sneaky fox" },
-            { e: "🌙", label: "night owl" },
-            { e: "🐸", label: "frog mode" },
-            { e: "🍑", label: "peachy keen" },
-            { e: "🦩", label: "extra fancy" },
-            { e: "🐨", label: "chill koala" },
-            { e: "🌊", label: "deep water" },
-            { e: "🦄", label: "unicorn energy" },
-            { e: "🍀", label: "lucky secrets" },
-          ].map((s, i) => (
-            <motion.button
-              key={s.e}
-              initial={{ opacity: 0, scale: 0 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.04, type: "spring", stiffness: 300, damping: 15 }}
-              whileHover={{ scale: 1.25, rotate: [-3, 3, 0], transition: { duration: 0.3 } }}
-              whileTap={{ scale: 0.9 }}
-              className="flex flex-col items-center gap-1 bg-card border-4 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A] rounded-2xl px-4 py-3 hover:bg-[#FDE047] transition-colors cursor-pointer"
-            >
-              <span className="text-3xl">{s.e}</span>
-              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wide">{s.label}</span>
-            </motion.button>
-          ))}
-        </div>
-      </section>
 
       {/* Tools */}
       <section className="flex flex-col gap-10">
@@ -307,36 +271,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Cute mood board */}
-      <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {[
-          { emoji: "🫧", msg: "Your pixels hold secrets", bg: "bg-[#BAE6FD]" },
-          { emoji: "🍬", msg: "Sweet on the outside", bg: "bg-[#FBCFE8]" },
-          { emoji: "🐚", msg: "Whispers hide inside", bg: "bg-[#D9F99D]" },
-          { emoji: "🌙", msg: "Night-mode approved", bg: "bg-[#DDD6FE]" },
-          { emoji: "🎀", msg: "Wrapped in secrecy", bg: "bg-[#FED7AA]" },
-          { emoji: "🫶", msg: "Made with love & LSB", bg: "bg-[#FECDD3]" },
-        ].map((card, i) => (
-          <motion.div
-            key={card.msg}
-            initial={{ opacity: 0, rotate: i % 2 === 0 ? -3 : 3 }}
-            whileInView={{ opacity: 1, rotate: i % 2 === 0 ? -1 : 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.08, type: "spring" }}
-            whileHover={{ rotate: 0, scale: 1.04, transition: { duration: 0.2 } }}
-            className={`${card.bg} p-6 rounded-2xl border-4 border-[#0F172A] shadow-[5px_5px_0_0_#0F172A] flex flex-col items-center gap-3 text-center cursor-default`}
-          >
-            <motion.span
-              animate={{ scale: [1, 1.15, 1] }}
-              transition={{ repeat: Infinity, duration: 2.5 + i * 0.3, ease: "easeInOut" }}
-              className="text-5xl"
-            >
-              {card.emoji}
-            </motion.span>
-            <p className="text-sm font-black text-[#0F172A]">{card.msg}</p>
-          </motion.div>
-        ))}
-      </section>
 
       {/* Carriers */}
       <section className="flex flex-col gap-10 bg-foreground text-background p-10 md:p-14 rounded-[3rem] border-4 border-border shadow-[12px_12px_0_0_hsl(var(--border))] overflow-hidden">
