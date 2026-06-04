@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
-}
+/**
+ * File to analyze for hidden content
+ */
+export interface DetectInput { [key: string]: unknown }
