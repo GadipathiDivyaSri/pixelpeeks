@@ -106,8 +106,8 @@ export default function Peek() {
           onClick={() => fileInputRef.current?.click()}
           className={`border-4 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[220px] ${
             isDragging
-              ? "border-[#FDE047] bg-[#FEFCE8] scale-[1.01]"
-              : file ? "border-[#0F172A] bg-[#FEFCE8]" : "border-[#FDE047] bg-[#FEFCE8] hover:bg-[#FEF9C3]"
+              ? "border-[#CA8A04] bg-[#FDE047] scale-[1.01]"
+              : file ? "border-[#0F172A] bg-[#FEF08A]" : "border-[#CA8A04] bg-[#FEF08A] hover:bg-[#FDE047]"
           }`}
         >
           <input
@@ -150,7 +150,7 @@ export default function Peek() {
           data-testid="button-submit-peek"
           type="submit"
           disabled={!file || detectStego.isPending}
-          className="bg-[#FDE047] text-[#0F172A] text-2xl font-black py-5 rounded-2xl border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_#0F172A] transition-all flex justify-center items-center gap-3"
+          className="bg-[#EAB308] text-white text-2xl font-black py-5 rounded-2xl border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_#0F172A] transition-all flex justify-center items-center gap-3"
         >
           {detectStego.isPending ? (
             <>
