@@ -1,34 +1,20 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Lock, Unlock, Search, ArrowRight } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
-import { useGetStats } from "@workspace/api-client-react";
-import { useInView } from "framer-motion";
+import { useState, useEffect } from "react";
 
-function AnimatedCounter({ target, duration = 2 }: { target: number; duration?: number }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
-
-  useEffect(() => {
-    if (!inView || target === 0) { setCount(target); return; }
-    let start = 0;
-    const steps = duration * 60;
-    const step = target / steps;
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= target) { setCount(target); clearInterval(timer); }
-      else setCount(Math.floor(start));
-    }, 1000 / 60);
-    return () => clearInterval(timer);
-  }, [inView, target, duration]);
-
-  return <span ref={ref}>{count.toLocaleString()}</span>;
-}
+const funFacts = [
+  "🐙 Octopuses change color to hide messages… just like pixels",
+  "🦚 Peacock feathers use nano-structures to create color — pure steganography",
+  "🐝 Bees dance directions. Nature invented encoding millions of years ago",
+  "🌊 The ocean is 95% unexplored. Your secrets are even safer",
+  "🦜 Parrots mimic 100+ words. Your files mimic innocence",
+  "🍄 Mycelium networks share info underground — nature's hidden internet",
+];
 
 export default function Home() {
   const [terminalText, setTerminalText] = useState("");
-  const { data: stats } = useGetStats();
+  const [factIndex, setFactIndex] = useState(0);
 
   useEffect(() => {
     const lines = [
@@ -41,6 +27,11 @@ export default function Home() {
       if (i < lines.length) setTerminalText(lines.slice(0, ++i));
       else clearInterval(iv);
     }, 45);
+    return () => clearInterval(iv);
+  }, []);
+
+  useEffect(() => {
+    const iv = setInterval(() => setFactIndex((f) => (f + 1) % funFacts.length), 3500);
     return () => clearInterval(iv);
   }, []);
 
@@ -112,45 +103,106 @@ export default function Home() {
         </motion.div>
 
         {/* Floating decorations */}
-        <motion.div
-          animate={{ y: [0, -18, 0], rotate: [0, 10, 0] }}
-          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-          className="absolute top-20 left-10 hidden lg:block text-3xl pointer-events-none"
-        >
-          ⭐
-        </motion.div>
-        <motion.div
-          animate={{ y: [0, -18, 0], rotate: [0, -10, 0] }}
-          transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 1 }}
-          className="absolute top-40 right-10 hidden lg:block text-3xl pointer-events-none"
-        >
-          💖
-        </motion.div>
+        {[
+          { emoji: "⭐", top: "top-20", side: "left-10", dur: 4, delay: 0, rotate: 10 },
+          { emoji: "💖", top: "top-40", side: "right-10", dur: 3.5, delay: 1, rotate: -10 },
+          { emoji: "🌈", top: "top-64", side: "left-20", dur: 5, delay: 0.5, rotate: 8 },
+          { emoji: "🍭", top: "top-80", side: "right-20", dur: 4.2, delay: 1.5, rotate: -8 },
+        ].map((d) => (
+          <motion.div
+            key={d.emoji}
+            animate={{ y: [0, -18, 0], rotate: [0, d.rotate, 0] }}
+            transition={{ repeat: Infinity, duration: d.dur, ease: "easeInOut", delay: d.delay }}
+            className={`absolute ${d.top} ${d.side} hidden lg:block text-3xl pointer-events-none select-none`}
+          >
+            {d.emoji}
+          </motion.div>
+        ))}
       </section>
 
-      {/* Stats */}
+      {/* Cute vibes section */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { emoji: "🔐", label: "Secrets Encoded", value: stats?.encodes ?? 0 },
-          { emoji: "🕵", label: "Secrets Decoded", value: stats?.decodes ?? 0 },
-          { emoji: "🔍", label: "Files Analyzed", value: stats?.peeks ?? 0 },
-          { emoji: "🎯", label: "Stego Hits Found", value: stats?.stegoHits ?? 0 },
-        ].map((stat, i) => (
+          { emoji: "🐱", label: "Sneaky as a cat", bg: "bg-[#FDE047]", shadow: "shadow-[6px_6px_0_0_#0F172A]", dur: 3.2, delay: 0 },
+          { emoji: "🌸", label: "Pretty on the outside", bg: "bg-[#FB7185]", shadow: "shadow-[6px_6px_0_0_#0F172A]", dur: 2.8, delay: 0.3 },
+          { emoji: "🔮", label: "Magic on the inside", bg: "bg-[#A78BFA]", shadow: "shadow-[6px_6px_0_0_#0F172A]", dur: 3.5, delay: 0.6 },
+          { emoji: "🦋", label: "Free your secrets", bg: "bg-[#34D399]", shadow: "shadow-[6px_6px_0_0_#0F172A]", dur: 2.6, delay: 0.9 },
+        ].map((item, i) => (
           <motion.div
-            key={stat.label}
+            key={item.label}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.1 }}
-            className="bg-card p-6 rounded-2xl border-4 border-border shadow-[6px_6px_0_0_hsl(var(--border))] text-center"
+            whileHover={{ scale: 1.06, rotate: [-1, 1, 0], transition: { duration: 0.3 } }}
+            className={`${item.bg} ${item.shadow} p-6 rounded-2xl border-4 border-[#0F172A] text-center flex flex-col items-center gap-2 cursor-default`}
           >
-            <div className="text-3xl mb-2">{stat.emoji}</div>
-            <div className="text-4xl font-black text-foreground">
-              <AnimatedCounter target={stat.value} />
-            </div>
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">{stat.label}</div>
+            <motion.div
+              animate={{ y: [0, -10, 0], rotate: [0, 8, -8, 0] }}
+              transition={{ repeat: Infinity, duration: item.dur, delay: item.delay, ease: "easeInOut" }}
+              className="text-5xl"
+            >
+              {item.emoji}
+            </motion.div>
+            <div className="text-xs font-black text-[#0F172A] uppercase tracking-wider mt-1">{item.label}</div>
           </motion.div>
         ))}
+      </section>
+
+      {/* Scrolling fun-fact ticker */}
+      <section className="overflow-hidden bg-[#0F172A] rounded-2xl border-4 border-[#0F172A] py-4 px-6 relative">
+        <div className="flex items-center gap-4">
+          <span className="text-[#FDE047] font-black text-sm uppercase tracking-widest whitespace-nowrap shrink-0">💡 Did you know?</span>
+          <div className="overflow-hidden flex-1">
+            <motion.p
+              key={factIndex}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.5 }}
+              className="text-white font-medium text-sm"
+            >
+              {funFacts[factIndex]}
+            </motion.p>
+          </div>
+        </div>
+      </section>
+
+      {/* Cute character row */}
+      <section className="flex flex-col items-center gap-6">
+        <h2 className="text-3xl md:text-4xl font-black text-center" style={{ fontFamily: "Outfit, sans-serif" }}>
+          Your secret's journey 🗺️
+        </h2>
+        <div className="flex flex-wrap justify-center items-center gap-2 md:gap-0 w-full">
+          {[
+            { emoji: "📝", label: "Type it", color: "bg-[#FDE047]" },
+            { emoji: "→", label: "", color: "bg-transparent border-0 shadow-none text-2xl font-black text-muted-foreground hidden md:flex" },
+            { emoji: "🔐", label: "Encrypt it", color: "bg-[#FB7185]" },
+            { emoji: "→", label: "", color: "bg-transparent border-0 shadow-none text-2xl font-black text-muted-foreground hidden md:flex" },
+            { emoji: "🖼️", label: "Hide it", color: "bg-[#60A5FA]" },
+            { emoji: "→", label: "", color: "bg-transparent border-0 shadow-none text-2xl font-black text-muted-foreground hidden md:flex" },
+            { emoji: "📤", label: "Send it", color: "bg-[#34D399]" },
+            { emoji: "→", label: "", color: "bg-transparent border-0 shadow-none text-2xl font-black text-muted-foreground hidden md:flex" },
+            { emoji: "🎉", label: "They find it!", color: "bg-[#A78BFA]" },
+          ].map((step, i) => (
+            step.emoji === "→"
+              ? <div key={i} className={step.color}>{step.emoji}</div>
+              : (
+                <motion.div
+                  key={step.label}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08, type: "spring", stiffness: 200 }}
+                  whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                  className={`${step.color} w-28 p-4 rounded-2xl border-4 border-[#0F172A] shadow-[5px_5px_0_0_#0F172A] flex flex-col items-center gap-2 cursor-default`}
+                >
+                  <span className="text-4xl">{step.emoji}</span>
+                  <span className="text-xs font-black text-[#0F172A] uppercase tracking-wide text-center">{step.label}</span>
+                </motion.div>
+              )
+          ))}
+        </div>
       </section>
 
       {/* Tools */}
@@ -188,6 +240,37 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
+      </section>
+
+      {/* Cute mood board */}
+      <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {[
+          { emoji: "🫧", msg: "Your pixels hold secrets", bg: "bg-[#BAE6FD]" },
+          { emoji: "🍬", msg: "Sweet on the outside", bg: "bg-[#FBCFE8]" },
+          { emoji: "🐚", msg: "Whispers hide inside", bg: "bg-[#D9F99D]" },
+          { emoji: "🌙", msg: "Night-mode approved", bg: "bg-[#DDD6FE]" },
+          { emoji: "🎀", msg: "Wrapped in secrecy", bg: "bg-[#FED7AA]" },
+          { emoji: "🫶", msg: "Made with love & LSB", bg: "bg-[#FECDD3]" },
+        ].map((card, i) => (
+          <motion.div
+            key={card.msg}
+            initial={{ opacity: 0, rotate: i % 2 === 0 ? -3 : 3 }}
+            whileInView={{ opacity: 1, rotate: i % 2 === 0 ? -1 : 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.08, type: "spring" }}
+            whileHover={{ rotate: 0, scale: 1.04, transition: { duration: 0.2 } }}
+            className={`${card.bg} p-6 rounded-2xl border-4 border-[#0F172A] shadow-[5px_5px_0_0_#0F172A] flex flex-col items-center gap-3 text-center cursor-default`}
+          >
+            <motion.span
+              animate={{ scale: [1, 1.15, 1] }}
+              transition={{ repeat: Infinity, duration: 2.5 + i * 0.3, ease: "easeInOut" }}
+              className="text-5xl"
+            >
+              {card.emoji}
+            </motion.span>
+            <p className="text-sm font-black text-[#0F172A]">{card.msg}</p>
+          </motion.div>
+        ))}
       </section>
 
       {/* Carriers */}
