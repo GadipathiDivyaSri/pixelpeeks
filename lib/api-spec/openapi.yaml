@@ -1,15 +1,20 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: PixelPeek steganography studio API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: steganography
+    description: Encode and decode operations
+  - name: analysis
+    description: Steganalysis operations
+  - name: history
+    description: Operation history and statistics
 paths:
   /healthz:
     get:
@@ -24,6 +29,121 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /encode:
+    post:
+      operationId: encodeFile
+      tags: [steganography]
+      summary: Hide a message in a carrier file
+      description: Encodes a secret message into an image, audio, or video file using LSB steganography
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/EncodeInput"
+      responses:
+        "200":
+          description: Encoded file download
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncodeResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /decode:
+    post:
+      operationId: decodeFile
+      tags: [steganography]
+      summary: Reveal a hidden message from a carrier file
+      description: Decodes a secret message from an encoded image, audio, or video file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/DecodeInput"
+      responses:
+        "200":
+          description: Decoded message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecodeResult"
+        "400":
+          description: No message found or wrong key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /detect:
+    post:
+      operationId: detectSteganography
+      tags: [analysis]
+      summary: Analyze a file for hidden content
+      description: Runs steganalysis using entropy, LSB ratio, chi-square, and block-LSB-stdev features
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/DetectInput"
+      responses:
+        "200":
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectResult"
+        "400":
+          description: Unsupported file type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [history]
+      summary: Get operation statistics
+      description: Returns totals for all operations performed
+      responses:
+        "200":
+          description: Statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [history]
+      summary: List recent operations
+      description: Returns a timeline of recent encode/decode/detect operations
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +154,167 @@ components:
       required:
         - status
 
+    EncodeInput:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The secret message to hide
+        key:
+          type: string
+          description: Optional passphrase for AES-256 encryption
+      required:
+        - message
+
+    EncodeResult:
+      type: object
+      properties:
+        downloadUrl:
+          type: string
+          description: URL to download the encoded file
+        filename:
+          type: string
+        carrier:
+          type: string
+          enum: [image, audio, video]
+        bytesUsed:
+          type: integer
+        totalBytes:
+          type: integer
+        timeSec:
+          type: number
+      required:
+        - downloadUrl
+        - filename
+        - carrier
+        - bytesUsed
+        - totalBytes
+        - timeSec
+
+    DecodeInput:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Optional passphrase used during encoding
+
+    DecodeResult:
+      type: object
+      properties:
+        message:
+          type: string
+        carrier:
+          type: string
+          enum: [image, audio, video]
+        encrypted:
+          type: boolean
+      required:
+        - message
+        - carrier
+        - encrypted
+
+    DetectInput:
+      type: object
+      description: File to analyze for hidden content
+
+    DetectResult:
+      type: object
+      properties:
+        verdict:
+          type: string
+          enum: [CLEAN, SUSPECT, STEGO]
+        probability:
+          type: number
+          description: Probability of steganographic content (0-1)
+        carrier:
+          type: string
+          enum: [image, audio, video]
+        features:
+          $ref: "#/components/schemas/StegoFeatures"
+      required:
+        - verdict
+        - probability
+        - carrier
+        - features
+
+    StegoFeatures:
+      type: object
+      properties:
+        entropy:
+          type: number
+          description: Shannon entropy of byte distribution (0-8)
+        lsbRatio:
+          type: number
+          description: Mean of LSB plane (stego ~0.5)
+        lsbDeviation:
+          type: number
+          description: Deviation from 0.5 (stego ~0)
+        chiSquare:
+          type: number
+          description: Chi-square pairs-of-values test, normalized
+        blockLsbStdev:
+          type: number
+          description: Stdev of LSB ratio across 64-sample blocks
+      required:
+        - entropy
+        - lsbRatio
+        - lsbDeviation
+        - chiSquare
+        - blockLsbStdev
+
+    Stats:
+      type: object
+      properties:
+        totalOps:
+          type: integer
+        encodes:
+          type: integer
+        decodes:
+          type: integer
+        peeks:
+          type: integer
+        stegoHits:
+          type: integer
+      required:
+        - totalOps
+        - encodes
+        - decodes
+        - peeks
+        - stegoHits
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        operation:
+          type: string
+          enum: [encode, decode, detect]
+        carrier:
+          type: string
+          enum: [image, audio, video]
+        filename:
+          type: string
+        verdict:
+          type: ["string", "null"]
+          enum: [CLEAN, SUSPECT, STEGO, null]
+        failed:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - operation
+        - carrier
+        - filename
+        - failed
+        - createdAt
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

@@ -1,0 +1,253 @@
+Here's the **complete, final, production-grade prompt** with security, testing, and correctness baked in:
+
+---
+
+# 🪄 PixelPeek — Full Build Prompt (v2 · Production-Grade)
+
+> Build **PixelPeek**, a playful, secure steganography studio web app where users hide secret messages inside images, audio, and video files, decode them back out, and run analysis to detect hidden payloads. **Every feature must work end-to-end with verified correct outputs.** The vibe is **cute, colorful, and tactile** — like a clever puzzle game, not a dark forensic tool.
+
+---
+
+## 🔧 Tech Stack
+
+**Backend** — FastAPI + MongoDB (motor async)
+- `Pillow` for image LSB
+- `NumPy` + `scikit-learn` (SVM RBF) for detection
+- `opencv-python-headless` for video frame sampling
+- `wave` (stdlib) for WAV PCM
+- `bcrypt` + `PyJWT` for auth
+- `cryptography` for AES-256-GCM payload encryption
+- All endpoints prefixed `/api`
+
+**Frontend** — React 19 + react-router-dom v7
+- Tailwind CSS (CRA + craco)
+- `framer-motion` for animations
+- `@phosphor-icons/react` (weight="bold") for icons
+- `axios` with Bearer token in `localStorage`
+
+---
+
+## 🔐 Security Requirements (non-negotiable)
+
+1. **Auth**
+   - bcrypt password hashing (`$2b$` hashes only, never plain MD5/SHA1)
+   - JWT signed with `JWT_SECRET` (≥64-char hex, stored in `.env`, never hardcoded)
+   - Access token: 1-day expiry, sent as httpOnly cookie **and** Bearer header
+   - Email normalized to lowercase, uniqueness enforced via MongoDB unique index
+   - Min password length 6, validated server-side via Pydantic
+   - Brute-force protection: **5 failed logins in 15 min → account lockout** (track by IP+email in `login_attempts` collection)
+   - Logout clears cookies server-side
+
+2. **Payload encryption**
+   - When user provides a passphrase, derive a 256-bit key via **PBKDF2-HMAC-SHA256 (200k iterations)** + random 16-byte salt
+   - Encrypt payload with **AES-256-GCM** (random 12-byte nonce, auth tag)
+   - Without the right key, decoding returns *"Wrong key or no hidden message."* — never leaks partial bytes
+   - When no passphrase given, use XOR-key fallback OR no obfuscation (still works, less secure)
+
+3. **CORS & cookies**
+   - Explicit `FRONTEND_URL` allowed origin (no `"*"` with credentials)
+   - `secure=False` only in preview; `secure=True` in production
+   - `SameSite=Lax`
+
+4. **Input validation & limits**
+   - Max upload size 50 MB per file (FastAPI middleware)
+   - Reject files whose declared MIME doesn't match detected carrier
+   - Sanitize filenames before echoing in `Content-Disposition`
+   - Never leak MongoDB `_id` in responses (project `{_id: 0}` or convert to string)
+
+5. **Env vars only** — no hardcoded secrets, no hardcoded URLs. Read from `.env`: `MONGO_URL`, `DB_NAME`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `FRONTEND_URL`.
+
+---
+
+## 🔐 Auth Endpoints
+
+- `POST /api/auth/register` — `{ email, password, name }` → user + JWT, sets httpOnly cookie
+- `POST /api/auth/login` — `{ email, password }` → same, with brute-force lockout
+- `POST /api/auth/logout` — clears cookies
+- `GET /api/auth/me` — current user (requires auth)
+- Seed admin (`admin@pixelpeek.app / admin123`) idempotently on startup. Write creds to `/app/memory/test_credentials.md`.
+
+**Public pages**: `/login`, `/register` (also accept `/signin`, `/signup` as aliases). Each page links to the other ("New here? Make an account" / "Already in? Sign in"). Login page must include a **"Use demo credentials"** button that auto-fills admin login.
+
+---
+
+## 📐 Functionality — Encode / Decode / Peek
+
+### 1. **Encode** (`/encode`)
+
+Tabbed UI: **Image · Audio · Video**. Auto-detect carrier on drop.
+
+| Carrier | Formats | Algorithm |
+|---|---|---|
+| **Image** | PNG, BMP, JPG, JPEG, WEBP | LSB embedding in R/G/B channels. Output: PNG (lossless). |
+| **Audio** | WAV (16-bit PCM mono/stereo) | LSB embedding in int16 samples. Output: WAV. |
+| **Video** | MP4, MOV, WEBM, AVI, MKV | Byte-tail append with magic markers `PXP1 + 4-byte-length + payload + 1PXP`. Playback unaffected. |
+
+- Optional passphrase → AES-256-GCM encrypt payload before embedding
+- Capacity check: if message larger than available bits, return `400` with byte-budget hint
+- Return file as download (`Content-Disposition: attachment`)
+- Show inline preview (img/audio/video) + big **Download** button
+
+`POST /api/encode` — multipart: `file`, `message`, `key` (optional)
+
+### 2. **Decode** (`/decode`)
+
+Same 3 tabs. Upload + key → reveal hidden message.
+
+- Read LSBs (or tail payload for video), decrypt with key
+- Wrong key / no payload → friendly 400: *"No hidden message found (or wrong key)."*
+- Success → **spring-scale reveal** of recovered text + "Copy to clipboard" button
+- **Correctness rule**: encoding then decoding the same file+key MUST return the exact original message — verified by automated tests
+
+`POST /api/decode` — multipart: `file`, `key` (optional)
+
+### 3. **Peek** (`/peek`) — Steganalysis
+
+**Classical 5-D feature pipeline + SVM (RBF kernel)** — no deep learning.
+
+**Features**:
+1. **Entropy** — Shannon entropy of byte distribution (0–8)
+2. **LSB ratio** — mean of LSB plane (stego ≈ 0.5)
+3. **LSB deviation** — `|lsb_ratio − 0.5|` (stego ≈ 0)
+4. **Chi-square** — Pairs-of-Values test, normalized
+5. **Block-LSB-stdev** — stddev of LSB ratio across 64-sample blocks (clean = variable, stego = uniform)
+
+**Classifier**: `Pipeline([StandardScaler, SVC(kernel='rbf', probability=True)])` trained on **1200 synthetic clean + 1200 synthetic stego** vectors at startup.
+
+**Verdicts**: `prob ≥ 0.80` → **STEGO** (red) · `≥ 0.55` → **SUSPECT** (yellow) · else **CLEAN** (mint)
+
+**Per-media**:
+- Image: flatten RGB → features
+- Audio: take low byte of int16 samples → features
+- Video: sample up to 24 frames via OpenCV, average per-frame features
+
+**Correctness rules** (must pass tests):
+- Clean natural photo → **CLEAN** with `prob < 0.55`
+- Image with full LSB embedding → **STEGO** with `prob > 0.80`
+- Clean WAV (sine wave) → **CLEAN**
+- LSB-stego WAV → **STEGO**
+
+**UI**: circular SVG probability gauge (color-coded), big verdict stamp, blurb, and 5 horizontal feature bars with raw values.
+
+`POST /api/detect` — multipart: `file`
+
+---
+
+## 🏠 Home (`/`) — Dashboard
+
+**No stats or pipeline diagrams.** Stats live only on History page.
+
+**Sections (top to bottom)**:
+
+1. **Hero card** with **animated floating shapes overlay** — sparkles, hearts, stars bobbing & rotating on infinite framer-motion loop at the four corners
+   - Pill tag: `now hiding pixels, samples & frames`
+   - Headline: **Hide [secrets] inside [pixels].** — "secrets" yellow chip (tilted -1°), "pixels" sky chip (tilted +1°), both with hard shadow borders
+   - Subtitle: *"PixelPeek is a playful steganography studio. Tuck messages into **images**, **audio** and **video**, pull them back out, and sniff out anything suspicious — no math degree required."*
+   - CTAs: red **"Start hiding →"** and sky **"Peek a file"**
+   - Dark terminal demo card with animated `$ pixelpeek encode --msg "meet at midnight"` lines and a blinking ✓ `17 chars hidden in 0.04s`
+
+2. **"Three tools, zero math."** — 3 cards (Encode/Decode/Peek) with colored icon tile, name, description, "Open X →"
+
+3. **"All the carriers, one studio."** — 3 floating-animation cards: Images (yellow), Audio (pink), Video (mint) with `LSB · PNG / BMP / JPG`-style mono captions
+
+4. **"Three steps. Zero ceremony."** — numbered cards: `01 Sign up with email`, `02 Pick your carrier`, `03 Pop, hide, share`
+
+5. **Red CTA card** with rotating yellow circle: **"Got a secret? Let it ride inside a pixel."** + lemon "Encode now" + white "View history"
+
+**Cute taglines to use verbatim**:
+- *"Sneaky pixels. Cheerful detectives."*
+- *"Hide stuff. Find stuff. Have fun."*
+- *"psst… secret inside"*
+- *"no math degree required"*
+- *"free to use · no email codes · your files never leave your account"*
+- *"every button works, every pixel listens"*
+- *"Whisper something only your friend can hear…"* (textarea placeholder)
+
+---
+
+## 📜 History (`/history`)
+
+- 4 stat cards: **Total Ops** (yellow), **Encodes** (red), **Peeks** (sky), **Stego Hits** (pink)
+- Lemon **Refresh** button
+- Timeline of every encode/decode/peek with: op icon, op name + carrier + filename, timestamp, verdict tag, "failed" tag for errors
+- Empty state with 3 quick-action buttons (Encode / Decode / Peek)
+
+`GET /api/stats` and `GET /api/events?limit=50` (both auth-protected)
+
+---
+
+## 🍔 Layout — Left Sidebar + 3-Line Hamburger Toggle
+
+**Persistent left sidebar** (264px, yellow `#FEF08A` bg, 2px slate-900 right border, sticky full-height):
+- Logo: animated wobbling eye icon + **"PixelPeek"** + `hide · seek · peek` mono caption
+- Nav links: **Home · Encode · Decode · Peek · History** — tactile buttons (white, 2px border, 3px shadow). Active = red bg + 4px shadow.
+- User pill (yellow) + pink **Logout** button at bottom
+
+**3-line hamburger** (Phosphor `List` icon) visible on **mobile AND desktop**:
+- Tap → slides sidebar in from left as drawer with dim backdrop
+- Tap backdrop or any nav link → drawer closes
+- Desktop: also acts as collapse/expand toggle
+
+---
+
+## 🎨 Design System — Neo-Brutalism
+
+- **Palette**: cream `#FDFBF7`, yellow `#FDE047`/`#FEF08A`, red `#FF6B6B`, mint `#86EFAC`, sky `#7DD3FC`, pink `#F9A8D4`, ink `#0F172A`
+- **Fonts** (Google Fonts): **Outfit** (display 400–900), **DM Sans** (body), **JetBrains Mono** (tags/code)
+- **Cards**: white, 2px slate-900 border, `rounded-2xl`, hard offset shadow `8px 8px 0 0 #0F172A`
+- **Buttons**: pill, 2px border, 4px hard shadow. Hover = `translate(4px, 4px)` + shadow disappears (physical press feel)
+- **Inputs**: 2px border, 4px hard shadow, focus collapses shadow + translates
+- **Animations**: framer-motion springs (stiffness 200–240, damping 18–22). Floating shapes loop `y: [0,-18,0]` + `rotate: [0,12,-8,0]`. Stagger entrances by 0.06–0.08s.
+- **Icons**: Phosphor (`@phosphor-icons/react`) `weight="bold"`
+- Every interactive element has a `data-testid`
+
+---
+
+## 🧪 Testing & Validation (mandatory)
+
+**Before declaring done, run and pass**:
+
+### Backend (pytest + curl)
+- ✅ Register new user → 200 with valid JWT
+- ✅ Login admin with demo creds → 200 with valid JWT
+- ✅ Login with wrong password 5x → 6th attempt returns 423/429 (lockout)
+- ✅ `/api/auth/me` without token → 401
+- ✅ Encode image → returns PNG, content-type `image/png`
+- ✅ Encode → Decode round-trip on **image, audio, video** all return exact original message
+- ✅ Decode with wrong key → 400 with friendly error (no partial bytes leaked)
+- ✅ Peek clean photo → CLEAN with `prob < 0.55`
+- ✅ Peek heavy-LSB stego image → STEGO with `prob > 0.80`
+- ✅ Peek clean WAV → CLEAN; Peek LSB-stego WAV → STEGO
+- ✅ Peek MP4 → returns valid verdict + features (graceful 415 if codec missing)
+- ✅ `/api/stats` and `/api/events` return correct counts; both reject unauth requests
+
+### Frontend (Playwright via testing_agent_v3)
+- ✅ Login page renders, demo button fills, submit lands on Home
+- ✅ Sidebar links route correctly to Encode/Decode/Peek/History
+- ✅ Hamburger opens drawer on mobile, closes on backdrop click
+- ✅ Encode flow on each of 3 tabs: upload → encode → download button appears
+- ✅ Decode flow recovers the exact message just encoded
+- ✅ Peek flow renders gauge + verdict tag + 5 feature bars
+- ✅ History shows new events after each op
+- ✅ Logout returns to /login
+
+**No false outputs**: clean files MUST NOT be flagged STEGO. Wrong keys MUST NOT return garbage as a "successful" message.
+
+---
+
+## 🚫 Non-goals
+- No deep learning
+- No dark hacker/cyber/terminal aesthetic
+- No purple/violet gradients
+- No generic Inter font
+- No emoji icons (use Phosphor)
+- No hardcoded URLs/secrets
+- No silent failures — every error has a friendly user-facing message
+
+---
+
+**Build it cute, animated, secure, and correct. Every button works. Every encode→decode round-trip is verified. Every peek verdict is honest. Done.**
+
+---
+
+That's the complete prompt — paste it into a fresh Emergent session and you'll get a working, secure, tested clone of PixelPeek.
