@@ -50,17 +50,18 @@ export default function Encode() {
     e.preventDefault();
     if (!file || !message) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("message", message);
-    if (passphrase) formData.append("key", passphrase);
-
-    encodeFile.mutate({ data: formData as any });
+    encodeFile.mutate({
+      data: {
+        file,
+        message,
+        ...(passphrase ? { key: passphrase } : {}),
+      } as any,
+    });
   };
 
   const tabs = [
     { id: "image" as const, label: "🖼 Image", color: "bg-[hsl(var(--chart-1))]", formats: "PNG · JPG · WEBP · BMP · GIF" },
-    { id: "audio" as const, label: "🎵 Audio", color: "bg-[hsl(var(--chart-3))]", formats: "WAV (PCM)" },
+    { id: "audio" as const, label: "🎵 Audio", color: "bg-[hsl(var(--chart-3))]", formats: "WAV · MP3 · FLAC · OGG · M4A · AAC" },
     { id: "video" as const, label: "🎥 Video", color: "bg-[hsl(var(--chart-4))]", formats: "MP4 · MOV · WEBM · AVI" },
   ];
 
@@ -281,7 +282,7 @@ export default function Encode() {
               <div className="font-medium text-sm">{getErrorMessage(encodeFile.error)}</div>
               {activeTab === "audio" && (
                 <div className="mt-2 text-xs font-medium opacity-80">
-                  💡 Tip: Audio steganography currently requires WAV format (PCM). Convert your file to WAV and try again.
+                  💡 Tip: Supported audio formats: WAV, MP3, FLAC, OGG, M4A, AAC. Output will be WAV.
                 </div>
               )}
             </div>
