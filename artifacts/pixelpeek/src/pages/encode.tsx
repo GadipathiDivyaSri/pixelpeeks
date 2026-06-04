@@ -119,8 +119,8 @@ export default function Encode() {
           onClick={() => fileInputRef.current?.click()}
           className={`border-4 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[200px] ${
             isDragging
-              ? "border-primary bg-[hsl(var(--chart-1))/10] scale-[1.01]"
-              : file ? "border-border bg-muted" : "border-border bg-card hover:bg-muted/50"
+              ? "border-[#FB7185] bg-[#FFE4EC] scale-[1.01]"
+              : file ? "border-[#0F172A] bg-[#FFF0F6]" : "border-[#FB7185] bg-[#FFF0F6] hover:bg-[#FFE4EC]"
           }`}
         >
           <input

@@ -108,8 +108,8 @@ export default function Decode() {
           onClick={() => fileInputRef.current?.click()}
           className={`border-4 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[200px] relative overflow-hidden ${
             isDragging
-              ? "border-[hsl(var(--chart-4))] bg-[hsl(var(--chart-4))/10] scale-[1.01]"
-              : file ? "border-border bg-muted" : "border-border bg-card hover:bg-muted/50"
+              ? "border-[#60A5FA] bg-[#DBEAFE] scale-[1.01]"
+              : file ? "border-[#0F172A] bg-[#EEF6FF]" : "border-[#60A5FA] bg-[#EEF6FF] hover:bg-[#DBEAFE]"
           }`}
         >
           <input

@@ -106,8 +106,8 @@ export default function Peek() {
           onClick={() => fileInputRef.current?.click()}
           className={`border-4 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[220px] ${
             isDragging
-              ? "border-[hsl(var(--chart-2))] bg-[hsl(var(--chart-2))/10] scale-[1.01]"
-              : file ? "border-border bg-muted" : "border-border bg-card hover:bg-muted/50"
+              ? "border-[#FDE047] bg-[#FEFCE8] scale-[1.01]"
+              : file ? "border-[#0F172A] bg-[#FEFCE8]" : "border-[#FDE047] bg-[#FEFCE8] hover:bg-[#FEF9C3]"
           }`}
         >
           <input
