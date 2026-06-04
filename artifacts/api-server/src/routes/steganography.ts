@@ -33,20 +33,15 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 500
 
 type Carrier = "image" | "audio" | "video";
 
+const IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff", ".tif"]);
+const AUDIO_EXTS = new Set([".wav", ".mp3", ".aac", ".flac", ".ogg", ".m4a", ".opus", ".wma"]);
+const VIDEO_EXTS = new Set([".mp4", ".mov", ".webm", ".avi", ".mkv", ".mpeg", ".mpg", ".m4v", ".3gp"]);
+
 function detectCarrier(mimetype: string, originalname: string): Carrier {
   const ext = path.extname(originalname).toLowerCase();
-  if (
-    mimetype.startsWith("image/") ||
-    [".png", ".bmp", ".jpg", ".jpeg", ".webp"].includes(ext)
-  ) return "image";
-  if (
-    mimetype === "audio/wav" || mimetype === "audio/x-wav" ||
-    [".wav"].includes(ext)
-  ) return "audio";
-  if (
-    mimetype.startsWith("video/") ||
-    [".mp4", ".mov", ".webm", ".avi", ".mkv"].includes(ext)
-  ) return "video";
+  if (IMAGE_EXTS.has(ext) || mimetype.startsWith("image/")) return "image";
+  if (AUDIO_EXTS.has(ext) || mimetype.startsWith("audio/")) return "audio";
+  if (VIDEO_EXTS.has(ext) || mimetype.startsWith("video/")) return "video";
   return "image"; // fallback
 }
 
@@ -85,11 +80,12 @@ router.post("/encode", upload.single("file"), async (req, res): Promise<void> =>
       payload = Buffer.from(encryptPayload(payload, key.trim()));
     }
 
+    const fileExt = path.extname(file.originalname).toLowerCase() || ".wav";
     let outBuf: Buffer;
     if (carrier === "image") {
       outBuf = await encodeImage(file.buffer, payload);
     } else if (carrier === "audio") {
-      outBuf = encodeAudio(file.buffer, payload);
+      outBuf = encodeAudio(file.buffer, payload, fileExt);
     } else {
       outBuf = encodeVideo(file.buffer, payload);
     }
@@ -143,11 +139,12 @@ router.post("/decode", upload.single("file"), async (req, res): Promise<void> =>
   const carrier = detectCarrier(file.mimetype, file.originalname);
 
   try {
+    const fileExt = path.extname(file.originalname).toLowerCase() || ".wav";
     let rawPayload: Buffer;
     if (carrier === "image") {
       rawPayload = await decodeImage(file.buffer);
     } else if (carrier === "audio") {
-      rawPayload = decodeAudio(file.buffer);
+      rawPayload = decodeAudio(file.buffer, fileExt);
     } else {
       rawPayload = decodeVideo(file.buffer);
     }
@@ -202,11 +199,12 @@ router.post("/detect", upload.single("file"), async (req, res): Promise<void> =>
   const carrier = detectCarrier(file.mimetype, file.originalname);
 
   try {
+    const fileExt = path.extname(file.originalname).toLowerCase() || ".wav";
     let features;
     if (carrier === "image") {
       features = await analyzeImageFeatures(file.buffer);
     } else if (carrier === "audio") {
-      features = analyzeAudioFeatures(file.buffer);
+      features = analyzeAudioFeatures(file.buffer, fileExt);
     } else {
       features = analyzeVideoFeatures(file.buffer);
     }

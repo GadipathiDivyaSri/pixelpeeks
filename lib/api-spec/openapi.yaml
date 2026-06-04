@@ -269,11 +269,14 @@ components:
     EncodeInput:
       type: object
       properties:
+        file:
+          type: string
+          format: binary
         message:
           type: string
         key:
           type: string
-      required: [message]
+      required: [file, message]
 
     EncodeResult:
       type: object
@@ -296,8 +299,12 @@ components:
     DecodeInput:
       type: object
       properties:
+        file:
+          type: string
+          format: binary
         key:
           type: string
+      required: [file]
 
     DecodeResult:
       type: object
@@ -313,6 +320,11 @@ components:
 
     DetectInput:
       type: object
+      properties:
+        file:
+          type: string
+          format: binary
+      required: [file]
 
     DetectResult:
       type: object
