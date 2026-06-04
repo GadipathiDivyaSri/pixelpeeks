@@ -5,6 +5,7 @@ import {
   AlertCircle, CheckCircle, Sparkles, X, Eye, EyeOff
 } from "lucide-react";
 import { useEncodeFile } from "@workspace/api-client-react";
+import { Confetti } from "@/components/confetti";
 
 const MAX_CHARS = 5000;
 
@@ -77,6 +78,7 @@ export default function Encode() {
 
   return (
     <div className="flex flex-col gap-8 max-w-3xl mx-auto pb-24">
+      <Confetti trigger={encodeFile.isSuccess} />
       <div className="text-center">
         <motion.div
           initial={{ opacity: 0, y: -10 }}

@@ -149,6 +149,34 @@ export default function Home() {
         ))}
       </section>
 
+      {/* Rainbow marquee strip */}
+      <div className="overflow-hidden rounded-2xl border-4 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A]">
+        <motion.div
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ repeat: Infinity, duration: 18, ease: "linear" }}
+          className="flex whitespace-nowrap"
+        >
+          {[...Array(2)].map((_, repeat) => (
+            <div key={repeat} className="flex">
+              {[
+                { txt: "🐱 sneaky cat approved", bg: "bg-[#FDE047]" },
+                { txt: "🌸 pretty on the outside", bg: "bg-[#FB7185]" },
+                { txt: "🔮 magic on the inside", bg: "bg-[#A78BFA]" },
+                { txt: "🦋 free your secrets", bg: "bg-[#34D399]" },
+                { txt: "🎀 wrapped in secrecy", bg: "bg-[#60A5FA]" },
+                { txt: "🍭 sweet like candy", bg: "bg-[#F97316]" },
+                { txt: "🌈 colourful & covert", bg: "bg-[#FACC15]" },
+                { txt: "💖 made with love & LSB", bg: "bg-[#EC4899]" },
+              ].map((item) => (
+                <span key={item.txt} className={`${item.bg} px-6 py-3 text-[#0F172A] font-black text-sm border-r-4 border-[#0F172A] inline-block`}>
+                  {item.txt}
+                </span>
+              ))}
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
       {/* Scrolling fun-fact ticker */}
       <section className="overflow-hidden bg-[#0F172A] rounded-2xl border-4 border-[#0F172A] py-4 px-6 relative">
         <div className="flex items-center gap-4">
@@ -201,6 +229,43 @@ export default function Home() {
                   <span className="text-xs font-black text-[#0F172A] uppercase tracking-wide text-center">{step.label}</span>
                 </motion.div>
               )
+          ))}
+        </div>
+      </section>
+
+      {/* Sticker wall */}
+      <section className="flex flex-col gap-6">
+        <h2 className="text-3xl md:text-4xl font-black text-center" style={{ fontFamily: "Outfit, sans-serif" }}>
+          Pick your vibe 🎨
+        </h2>
+        <div className="flex flex-wrap justify-center gap-3">
+          {[
+            { e: "🐣", label: "just hatched" },
+            { e: "🫐", label: "blueberry mode" },
+            { e: "🌵", label: "prickly & private" },
+            { e: "🦊", label: "sneaky fox" },
+            { e: "🌙", label: "night owl" },
+            { e: "🐸", label: "frog mode" },
+            { e: "🍑", label: "peachy keen" },
+            { e: "🦩", label: "extra fancy" },
+            { e: "🐨", label: "chill koala" },
+            { e: "🌊", label: "deep water" },
+            { e: "🦄", label: "unicorn energy" },
+            { e: "🍀", label: "lucky secrets" },
+          ].map((s, i) => (
+            <motion.button
+              key={s.e}
+              initial={{ opacity: 0, scale: 0 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.04, type: "spring", stiffness: 300, damping: 15 }}
+              whileHover={{ scale: 1.25, rotate: [-3, 3, 0], transition: { duration: 0.3 } }}
+              whileTap={{ scale: 0.9 }}
+              className="flex flex-col items-center gap-1 bg-card border-4 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A] rounded-2xl px-4 py-3 hover:bg-[#FDE047] transition-colors cursor-pointer"
+            >
+              <span className="text-3xl">{s.e}</span>
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wide">{s.label}</span>
+            </motion.button>
           ))}
         </div>
       </section>
