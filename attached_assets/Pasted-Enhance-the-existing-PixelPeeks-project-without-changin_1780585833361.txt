@@ -1,0 +1,613 @@
+Enhance the existing PixelPeeks project without changing its core architecture, routes, navigation, branding, workflow, or current functionality. Keep everything that currently works and transform it into a professional, modern, startup-grade steganography platform with real steganography implementation, advanced analysis, and beautiful UI.
+
+PROJECT NAME:
+PixelPeeks
+
+TAGLINE:
+🔐 Hide Secrets. Peek Beyond Pixels.
+
+MISSION:
+PixelPeeks should allow users to securely hide, reveal, encrypt, and analyze secret messages inside Images, Audio Files, and Video Files using real steganography techniques.
+
+══════════════════════════════════════════════
+
+IMPORTANT RULES
+
+- Do NOT rebuild the project from scratch.
+- Do NOT remove any existing features.
+- Do NOT change existing routes unless necessary.
+- Do NOT break current functionality.
+- Improve and extend existing features.
+- Fix all current bugs.
+- Make the application production-ready.
+- Maintain the existing PixelPeeks identity.
+
+══════════════════════════════════════════════
+
+CORE STEGANOGRAPHY ENGINE
+
+Implement REAL steganography techniques.
+
+IMAGE STEGANOGRAPHY
+
+Primary Method:
+
+- LSB (Least Significant Bit) Steganography
+
+Features:
+
+- Hide text inside image pixels.
+- Extract text from image pixels.
+- Support encrypted payloads.
+- Store payload length.
+- Store integrity verification data.
+
+Supported Formats:
+
+- PNG
+- JPG
+- JPEG
+- WEBP
+- BMP
+- GIF
+- TIFF
+
+Advanced Options:
+
+- Single-bit LSB
+- Multi-bit LSB
+- Randomized Pixel Embedding
+- Password-Protected Embedding
+- AES-256 Encryption
+
+══════════════════════════════════════════════
+
+AUDIO STEGANOGRAPHY
+
+Primary Method:
+
+- LSB Audio Steganography
+
+Features:
+
+- Hide messages in audio samples.
+- Extract messages from audio samples.
+- Password protection.
+- Encrypted payloads.
+
+Supported Formats:
+
+- WAV
+- MP3
+- FLAC
+- AAC
+- OGG
+- M4A
+
+Advanced Options:
+
+- Random Sample Embedding
+- AES Encryption
+- Integrity Verification
+
+══════════════════════════════════════════════
+
+VIDEO STEGANOGRAPHY
+
+Primary Method:
+
+- Frame-Based LSB Steganography
+
+Workflow:
+
+Video
+↓
+Extract Frames
+↓
+Embed Secret
+↓
+Rebuild Video
+
+Supported Formats:
+
+- MP4
+- MOV
+- AVI
+- WEBM
+- MKV
+- MPEG
+- M4V
+- 3GP
+
+Features:
+
+- Multi-frame embedding.
+- Random frame selection.
+- AES encryption.
+- Password protection.
+- Integrity verification.
+
+══════════════════════════════════════════════
+
+ENCRYPTION
+
+Before embedding:
+
+Message
+↓
+AES-256 Encryption
+↓
+LSB Embedding
+
+During extraction:
+
+LSB Extraction
+↓
+AES-256 Decryption
+↓
+Display Secret
+
+Features:
+
+- Passphrase Protection
+- AES-256 Encryption
+- Secure Key Generation
+- Payload Integrity Validation
+
+══════════════════════════════════════════════
+
+ENCODE PAGE
+
+Allow users to hide messages inside:
+
+🖼 Images
+
+🎵 Audio
+
+🎥 Video
+
+Features:
+
+- Drag & Drop Upload
+- File Preview
+- Character Counter
+- Capacity Meter
+- Passphrase Input
+- Encryption Toggle
+- Upload Progress
+- Processing Progress
+- Download Encoded File
+
+Success Message:
+
+🎉 Secret Successfully Hidden!
+
+Display:
+
+- File Name
+- File Type
+- File Size
+- Available Capacity
+- Encryption Status
+
+══════════════════════════════════════════════
+
+DECODE PAGE
+
+Allow users to reveal messages from:
+
+🖼 Images
+
+🎵 Audio
+
+🎥 Video
+
+Features:
+
+- Auto File Type Detection
+- Passphrase Verification
+- Secret Reveal Animation
+- Copy Secret Button
+- Download Secret Option
+
+Loading Animation:
+
+🔍 Searching for hidden secrets...
+
+Success Message:
+
+✨ Secret Message Found!
+
+══════════════════════════════════════════════
+
+PEEK ANALYZER
+
+Create a dedicated feature:
+
+🔍 PixelPeeks Analyzer
+
+Purpose:
+
+Estimate whether uploaded media contains hidden information.
+
+Supported:
+
+- Images
+- Audio
+- Video
+
+══════════════════════════════════════════════
+
+IMAGE ANALYSIS
+
+Perform:
+
+- LSB Detection
+- Histogram Analysis
+- Entropy Analysis
+- Metadata Analysis
+- Pixel Distribution Analysis
+
+══════════════════════════════════════════════
+
+AUDIO ANALYSIS
+
+Perform:
+
+- Spectrum Analysis
+- Frequency Analysis
+- Entropy Analysis
+- Metadata Analysis
+
+══════════════════════════════════════════════
+
+VIDEO ANALYSIS
+
+Perform:
+
+- Frame Analysis
+- Entropy Analysis
+- Metadata Analysis
+- Hidden Payload Detection
+
+══════════════════════════════════════════════
+
+PEEK RESULTS
+
+Display:
+
+Hidden Content Probability
+
+0% - 100%
+
+Examples:
+
+🟢 12%
+No hidden content detected.
+
+🟡 58%
+Suspicious patterns found.
+
+🔴 89%
+Possible hidden payload detected.
+
+Display:
+
+- Risk Score
+- Confidence Score
+- Entropy Score
+- Metadata Risk
+- Analysis Summary
+
+══════════════════════════════════════════════
+
+BUG FIXES
+
+Current Error:
+
+"Failed to encode file. Please try again."
+
+Investigate and fix:
+
+- File validation
+- Upload handling
+- API failures
+- Missing dependencies
+- Missing routes
+- Encoding engine
+- Decoding engine
+- Environment variables
+- Backend processing
+
+Provide user-friendly error messages.
+
+══════════════════════════════════════════════
+
+UI REDESIGN
+
+Keep current structure and workflow.
+
+Make UI significantly better.
+
+Theme:
+
+Cute + Modern + Cybersecurity + Startup
+
+Color Palette:
+
+- Soft Pink
+- Lavender
+- Baby Blue
+- Soft Yellow
+- White
+- Soft Purple
+
+══════════════════════════════════════════════
+
+VISUAL EFFECTS
+
+Add:
+
+✨ Sparkles
+
+⭐ Floating Stars
+
+💖 Hearts
+
+🔐 Floating Locks
+
+📩 Secret Envelopes
+
+🕵 Detective Elements
+
+🎮 Pixel Characters
+
+🌈 Soft Gradients
+
+══════════════════════════════════════════════
+
+HERO SECTION
+
+Title:
+
+🔐 Hide Secrets Inside Pixels
+
+Subtitle:
+
+Turn ordinary images, audio, and videos into secure secret message carriers.
+
+Typing Animation:
+
+Hide Secrets...
+
+Protect Memories...
+
+Share Securely...
+
+Discover Hidden Data...
+
+══════════════════════════════════════════════
+
+EXAMPLE MESSAGES
+
+💌 Meet me at 7 PM
+
+🌸 Happy Birthday!
+
+💕 I miss you
+
+🎂 Date night this Friday?
+
+🎁 Open your gift now!
+
+✨ You are my favorite person
+
+☕ Coffee date tomorrow?
+
+📚 Meet me near the library at 6 PM
+
+🍦 You owe me ice cream
+
+🌙 Meet me at midnight
+
+🎮 Let's play tonight
+
+══════════════════════════════════════════════
+
+FEATURE CARDS
+
+🖼 Image Steganography
+
+🎵 Audio Steganography
+
+🎥 Video Steganography
+
+🔍 Peek Analyzer
+
+🔒 AES Encryption
+
+📦 Secure Downloads
+
+Add:
+
+- Hover Glow
+- Tilt Effect
+- Floating Shadows
+- Smooth Animation
+
+══════════════════════════════════════════════
+
+LIVE DEMO SECTION
+
+Show Animated Flow:
+
+Image
+↓
+Hide Secret
+↓
+Encoded Image
+↓
+Reveal Secret
+
+Repeat for:
+
+Audio
+
+Video
+
+══════════════════════════════════════════════
+
+STATISTICS SECTION
+
+Animated Counters:
+
+🔐 Secrets Protected
+
+📁 Files Processed
+
+🔍 Files Analyzed
+
+⚡ Processing Speed
+
+══════════════════════════════════════════════
+
+DECODE EXPERIENCE
+
+Theme:
+
+🕵 Detective Mode
+
+Add:
+
+- Detective Mascot
+- Magnifying Glass Animation
+- Scanning Line Effect
+- Reveal Animation
+- Secret Found Animation
+
+══════════════════════════════════════════════
+
+DARK MODE
+
+Add:
+
+🌙 Dark Mode
+
+☀️ Light Mode
+
+Remember user preference.
+
+══════════════════════════════════════════════
+
+ACHIEVEMENTS
+
+Badges:
+
+🥇 First Secret Hidden
+
+🔐 Encryption Master
+
+🕵 Secret Detective
+
+🎵 Audio Expert
+
+🎥 Video Wizard
+
+🖼 Image Ninja
+
+══════════════════════════════════════════════
+
+SETTINGS PAGE
+
+Add:
+
+- Theme Selection
+- Animation Toggle
+- Language Selection
+- Default Encryption
+- Privacy Settings
+- Auto Download
+
+══════════════════════════════════════════════
+
+PERFORMANCE
+
+Optimize:
+
+- Large Uploads
+- Media Processing
+- Mobile Experience
+- Accessibility
+- Browser Compatibility
+
+Supported Limits:
+
+Images:
+Up to 50 MB
+
+Audio:
+Up to 200 MB
+
+Video:
+Up to 500 MB
+
+══════════════════════════════════════════════
+
+DEPLOYMENT
+
+Prepare for:
+
+✅ Vercel
+
+✅ Render
+
+✅ GitHub
+
+Create:
+
+- README.md
+- LICENSE
+- CONTRIBUTING.md
+- DEPLOYMENT.md
+- .gitignore
+- vercel.json
+- render.yaml
+
+Add:
+
+- GitHub Actions Workflow
+- Production Build Configuration
+- Environment Variable Support
+
+══════════════════════════════════════════════
+
+FALLBACK MODE
+
+If GitHub Pages cannot support backend processing:
+
+Create a Demo Mode showing:
+
+- UI Showcase
+- Example Encoding
+- Example Decoding
+- Feature Demonstrations
+
+Display:
+
+"Full steganography functionality is available on the Vercel and Render deployments."
+
+══════════════════════════════════════════════
+
+FINAL GOAL
+
+PixelPeeks should feel like a professional SaaS cybersecurity platform that combines:
+
+- Real LSB Steganography
+- AES-256 Encryption
+- Image/Audio/Video Support
+- Advanced Peek Analysis
+- Beautiful Modern UI
+- Cute Interactive Experience
+- Production-Ready Deployment
+
+while preserving the existing PixelPeeks project structure and functionality.
