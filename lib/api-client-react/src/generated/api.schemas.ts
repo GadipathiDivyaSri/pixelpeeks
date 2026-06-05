@@ -17,6 +17,25 @@ export interface RegisterBody {
   password: string;
 }
 
+export interface ForgotPasswordBody {
+  email: string;
+}
+
+export interface ForgotPasswordResult {
+  message: string;
+  resetToken: string;
+}
+
+export interface ResetPasswordBody {
+  token: string;
+  /** @minLength 6 */
+  password: string;
+}
+
+export interface ResetPasswordResult {
+  message: string;
+}
+
 export interface LoginBody {
   email: string;
   password: string;
@@ -89,6 +108,7 @@ export const DetectResultVerdict = {
   CLEAN: 'CLEAN',
   SUSPECT: 'SUSPECT',
   STEGO: 'STEGO',
+  PIXELPEEK: 'PIXELPEEK',
 } as const;
 
 export type DetectResultCarrier = typeof DetectResultCarrier[keyof typeof DetectResultCarrier];
@@ -151,6 +171,7 @@ export const EventVerdict = {
   CLEAN: 'CLEAN',
   SUSPECT: 'SUSPECT',
   STEGO: 'STEGO',
+  PIXELPEEK: 'PIXELPEEK',
 } as const;
 
 export interface Event {
