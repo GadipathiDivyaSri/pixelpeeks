@@ -60,9 +60,9 @@ export default function Decode() {
   };
 
   const tabs = [
-    { id: "image" as const, label: "🖼 Image", color: "bg-[hsl(var(--chart-1))]" },
-    { id: "audio" as const, label: "🎵 Audio", color: "bg-[hsl(var(--chart-3))]" },
-    { id: "video" as const, label: "🎥 Video", color: "bg-[hsl(var(--chart-4))]" },
+    { id: "image" as const, label: "🖼 Image", color: "bg-[#2563EB]" },
+    { id: "audio" as const, label: "🎵 Audio", color: "bg-[#A855F7]" },
+    { id: "video" as const, label: "🎥 Video", color: "bg-[#0D9488]" },
   ];
 
   return (
@@ -89,10 +89,10 @@ export default function Decode() {
             key={tab.id}
             data-testid={`tab-${tab.id}`}
             onClick={() => { setActiveTab(tab.id); setFile(null); decodeFile.reset(); }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm text-white border-2 border-[#0F172A] ${
               activeTab === tab.id
-                ? `${tab.color} border-2 border-border shadow-[2px_2px_0_0_hsl(var(--border))]`
-                : "hover:bg-muted text-muted-foreground"
+                ? `${tab.color} shadow-[3px_3px_0_0_#0F172A]`
+                : `${tab.color} opacity-40 hover:opacity-70`
             }`}
           >
             {tab.label}

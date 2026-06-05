@@ -59,9 +59,9 @@ export default function Encode() {
   };
 
   const tabs = [
-    { id: "image" as const, label: "🖼 Image", color: "bg-[hsl(var(--chart-1))]", formats: "PNG · JPG · WEBP · BMP · GIF" },
-    { id: "audio" as const, label: "🎵 Audio", color: "bg-[hsl(var(--chart-3))]", formats: "WAV (PCM)" },
-    { id: "video" as const, label: "🎥 Video", color: "bg-[hsl(var(--chart-4))]", formats: "MP4 · MOV · WEBM · AVI" },
+    { id: "image" as const, label: "🖼 Image", color: "bg-[#F43F5E]", formats: "PNG · JPG · WEBP · BMP · GIF" },
+    { id: "audio" as const, label: "🎵 Audio", color: "bg-[#A855F7]", formats: "WAV (PCM)" },
+    { id: "video" as const, label: "🎥 Video", color: "bg-[#F97316]", formats: "MP4 · MOV · WEBM · AVI" },
   ];
 
   const activeTabData = tabs.find(t => t.id === activeTab)!;
@@ -100,10 +100,10 @@ export default function Encode() {
             key={tab.id}
             data-testid={`tab-${tab.id}`}
             onClick={() => { setActiveTab(tab.id); setFile(null); encodeFile.reset(); }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm text-white border-2 border-[#0F172A] ${
               activeTab === tab.id
-                ? `${tab.color} border-2 border-border shadow-[2px_2px_0_0_hsl(var(--border))]`
-                : "hover:bg-muted text-muted-foreground"
+                ? `${tab.color} shadow-[3px_3px_0_0_#0F172A]`
+                : `${tab.color} opacity-40 hover:opacity-70`
             }`}
           >
             {tab.label}
