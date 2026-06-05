@@ -1,154 +1,31 @@
-# PixelPeek 🔍
+🔍✨ Ever wondered what secrets an image can hide?
 
-PixelPeek is a modern steganography and hidden-data analysis platform that allows users to securely hide messages inside images, extract hidden content, and analyze images for potential steganographic payloads.
+Meet **PixelPeek** — a project we built during our internship at **Git Technologies**, where cybersecurity meets curiosity.
 
-Developed as an internship project at Git Technologies by:
+PixelPeek allows you to **Peek In** 👀 and hide messages inside images, then **Peek Out** 🔓 to reveal them later. Behind the scenes, it explores the fascinating world of steganography, image analysis, and digital forensics.
 
-* Divya Sri Gadipathi
-* Kandala Chandana
+Built with passion by:
+👩‍💻 **Divya Sri Gadipathi**
+👩‍💻 **Kandala Chandana**
 
----
+### What PixelPeek can do
 
-## 🚀 Features
+🖼️ Hide secret messages inside images
+🔎 Analyze images for hidden content
+📊 Perform entropy and statistical inspections
+🔐 Explore real-world steganography concepts
+✨ Deliver everything through a modern and interactive interface
 
-### Peek In
+This project wasn't just about writing code—it was about understanding how information can exist beyond what the eye can see.
 
-Hide secret messages inside images using image steganography techniques.
+A heartfelt thank you to **Git Technologies** for giving us the opportunity to learn, build, experiment, and grow through this internship experience.
 
-### Peek Out
+🌐 Live Demo:
+https://pixelpeeks--divsri723.replit.app/
 
-Extract hidden messages from steganographic images.
+💻 GitHub Repository:
+https://github.com/GadipathiDivyaSri/pixelpeeks
 
-### Hidden Data Detection
+Sometimes, the most interesting stories are hidden between the pixels. ✨
 
-Analyze images to identify potential hidden payloads and suspicious patterns.
-
-### Statistical Analysis
-
-Perform entropy and image analysis to inspect image characteristics.
-
-### Modern User Interface
-
-Clean, responsive, and interactive web-based experience.
-
----
-
-## 🛠️ Technologies Used
-
-### Frontend
-
-* React
-* TypeScript
-* Tailwind CSS
-* Vite
-
-### Backend
-
-* Node.js
-* Express.js
-
-### Security & Analysis
-
-* Image Processing
-* Steganography Techniques
-* Entropy Analysis
-* Statistical Analysis
-
----
-
-## 📸 Use Cases
-
-* Cybersecurity Learning
-* Digital Forensics Education
-* Information Hiding Research
-* Security Awareness Demonstrations
-* Academic Projects
-
----
-
-## 📂 Project Structure
-
-```bash
-pixelpeeks/
-├── client/
-├── server/
-├── shared/
-├── public/
-├── package.json
-└── README.md
-```
-
----
-
-## ⚡ Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/GadipathiDivyaSri/pixelpeeks.git
-```
-
-Navigate to the project directory:
-
-```bash
-cd pixelpeeks
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Run the development server:
-
-```bash
-npm run dev
-```
-
-Open your browser and visit:
-
-```text
-http://localhost:3000
-```
-
----
-
-## 🔒 Disclaimer
-
-PixelPeek is developed for educational, research, and learning purposes. Users are responsible for complying with applicable laws, regulations, and organizational policies when using steganography techniques.
-
----
-
-## 🎯 Learning Outcomes
-
-This project helped us gain practical experience in:
-
-* Cybersecurity Fundamentals
-* Digital Forensics Concepts
-* Steganography Techniques
-* Full-Stack Web Development
-* Team Collaboration
-* Problem Solving and Debugging
-
----
-
-## 👥 Contributors
-
-### Divya Sri Gadipathi
-
-GitHub: https://github.com/GadipathiDivyaSri
-
-### Kandala Chandana
-
----
-
-## ⭐ Support
-
-If you find this project useful, consider giving the repository a star ⭐ on GitHub.
-
----
-
-## 📜 License
-
-This project is intended for educational and internship learning purposes.
+#PixelPeek #CyberSecurity #Steganography #DigitalForensics #GitTechnologies #InternshipProject #InformationSecurity #WebDevelopment #FullStackDevelopment #StudentDevelopers #WomenInTech #BuildInPublic #GitHub
