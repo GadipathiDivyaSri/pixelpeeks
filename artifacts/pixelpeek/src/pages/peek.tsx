@@ -28,9 +28,7 @@ export default function Peek() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    detectStego.mutate({ data: formData as any });
+    detectStego.mutate({ data: { file } as any });
   };
 
   const getVerdictDetails = (verdict: string, prob: number) => {

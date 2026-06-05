@@ -358,6 +358,7 @@ export const getEncodeFileUrl = () => {
  */
 export const encodeFile = async (encodeInput: EncodeInput, options?: RequestInit): Promise<EncodeResult> => {
     const formData = new FormData();
+formData.append(`file`, encodeInput.file);
 formData.append(`message`, encodeInput.message);
 if(encodeInput.key !== undefined) {
  formData.append(`key`, encodeInput.key);
@@ -434,6 +435,7 @@ export const getDecodeFileUrl = () => {
  */
 export const decodeFile = async (decodeInput: DecodeInput, options?: RequestInit): Promise<DecodeResult> => {
     const formData = new FormData();
+formData.append(`file`, decodeInput.file);
 if(decodeInput.key !== undefined) {
  formData.append(`key`, decodeInput.key);
  }
@@ -509,6 +511,7 @@ export const getDetectSteganographyUrl = () => {
  */
 export const detectSteganography = async (detectInput: DetectInput, options?: RequestInit): Promise<DetectResult> => {
     const formData = new FormData();
+formData.append(`file`, detectInput.file);
 
   return customFetch<DetectResult>(getDetectSteganographyUrl(),
   {

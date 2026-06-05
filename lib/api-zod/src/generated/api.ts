@@ -65,6 +65,7 @@ export const GetMeResponse = zod.object({
  * @summary Hide a message in a carrier file
  */
 export const EncodeFileBody = zod.object({
+  "file": zod.instanceof(File),
   "message": zod.string(),
   "key": zod.string().optional()
 })
@@ -83,6 +84,7 @@ export const EncodeFileResponse = zod.object({
  * @summary Reveal a hidden message from a carrier file
  */
 export const DecodeFileBody = zod.object({
+  "file": zod.instanceof(File),
   "key": zod.string().optional()
 })
 
@@ -97,8 +99,8 @@ export const DecodeFileResponse = zod.object({
  * @summary Analyze a file for hidden content
  */
 export const DetectSteganographyBody = zod.object({
-
-}).passthrough()
+  "file": zod.instanceof(File)
+})
 
 export const DetectSteganographyResponse = zod.object({
   "verdict": zod.enum(['CLEAN', 'SUSPECT', 'STEGO']),

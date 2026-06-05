@@ -38,11 +38,12 @@ export default function Decode() {
     e.preventDefault();
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    if (passphrase) formData.append("key", passphrase);
-
-    decodeFile.mutate({ data: formData as any });
+    decodeFile.mutate({
+      data: {
+        file,
+        ...(passphrase ? { key: passphrase } : {}),
+      } as any,
+    });
   };
 
   const handleCopy = () => {

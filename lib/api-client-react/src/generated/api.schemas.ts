@@ -35,6 +35,7 @@ export interface AuthResult {
 }
 
 export interface EncodeInput {
+  file: Blob;
   message: string;
   key?: string;
 }
@@ -58,6 +59,7 @@ export interface EncodeResult {
 }
 
 export interface DecodeInput {
+  file: Blob;
   key?: string;
 }
 
@@ -76,7 +78,9 @@ export interface DecodeResult {
   encrypted: boolean;
 }
 
-export interface DetectInput { [key: string]: unknown }
+export interface DetectInput {
+  file: Blob;
+}
 
 export type DetectResultVerdict = typeof DetectResultVerdict[keyof typeof DetectResultVerdict];
 
