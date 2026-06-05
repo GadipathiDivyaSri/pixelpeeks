@@ -309,9 +309,9 @@ export default function Home() {
 
         <div className="flex flex-col md:flex-row gap-6 bg-[hsl(var(--chart-5))] p-8 md:p-12 rounded-[3rem] border-4 border-border shadow-[12px_12px_0_0_hsl(var(--border))]">
           {[
-            { num: "01", title: "Pick a file", desc: "Image, audio, or video — any size up to 500 MB", color: "bg-background" },
-            { num: "02", title: "Type a secret", desc: "Your message, optional passphrase, AES-256 protection", color: "bg-card" },
-            { num: "03", title: "Download & share", desc: "Looks identical. Hides everything. Perfectly covert.", color: "bg-[hsl(var(--chart-2))]" },
+            { num: "01", title: "🗂️ Pick a file", desc: "🖼️ Image, 🎵 audio, or 🎥 video — any size up to 500 MB", color: "bg-background" },
+            { num: "02", title: "🤫 Type a secret", desc: "💌 Your message, 🔑 optional passphrase, 🛡️ AES-256 protection", color: "bg-card" },
+            { num: "03", title: "📤 Download & share", desc: "👀 Looks identical. 🕵️ Hides everything. ✨ Perfectly covert.", color: "bg-[hsl(var(--chart-2))]" },
           ].map((step, i) => (
             <motion.div
               key={step.num}

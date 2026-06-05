@@ -17,20 +17,6 @@ import {
 import { useEncodeFile } from "@workspace/api-client-react";
 import { Confetti } from "@/components/confetti";
 
-const MAX_CHARS = 5000;
-
-function estimateCapacityBytes(
-  file: File,
-  type: "image" | "audio" | "video",
-): number | null {
-  if (type === "image") {
-    return Math.floor((file.size * 0.3) / 8) - 4;
-  }
-  if (type === "audio") {
-    return Math.floor((file.size * 0.125) / 8) - 4;
-  }
-  return null;
-}
 
 export default function Encode() {
   const [activeTab, setActiveTab] = useState<"image" | "audio" | "video">(
