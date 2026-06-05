@@ -50,6 +50,40 @@ export function decryptPayload(data: Buffer, passphrase: string): Buffer {
   }
 }
 
+// ── PXPK_V1 Signature ────────────────────────────────────────────────────────
+// Header: PXPK\x01 (5 bytes) + payload_length (4 bytes BE) + checksum (4 bytes BE) = 13 bytes
+
+const PXPK_MAGIC = Buffer.from([0x50, 0x58, 0x50, 0x4b, 0x01]); // PXPK\x01
+
+function pxpkChecksum(buf: Buffer): number {
+  let s = 0;
+  for (let i = 0; i < buf.length; i++) s = (s + buf[i]) >>> 0;
+  return s;
+}
+
+/** Wrap a payload buffer with the PXPK_V1 signature header. */
+export function wrapWithPxpkSignature(payload: Buffer): Buffer {
+  const hdr = Buffer.allocUnsafe(13);
+  PXPK_MAGIC.copy(hdr, 0);
+  hdr.writeUInt32BE(payload.length, 5);
+  hdr.writeUInt32BE(pxpkChecksum(payload), 9);
+  return Buffer.concat([hdr, payload]);
+}
+
+/** Try to unwrap a PXPK_V1 signature. Returns the inner payload if valid. */
+export function tryUnwrapPxpkSignature(data: Buffer): { isPxpk: boolean; valid: boolean; payload: Buffer } {
+  if (data.length < 13 || !data.subarray(0, 5).equals(PXPK_MAGIC)) {
+    return { isPxpk: false, valid: false, payload: data };
+  }
+  const payloadLen = data.readUInt32BE(5);
+  const checksum = data.readUInt32BE(9);
+  if (payloadLen > 100_000_000 || data.length < 13 + payloadLen) {
+    return { isPxpk: true, valid: false, payload: Buffer.alloc(0) };
+  }
+  const payload = data.subarray(13, 13 + payloadLen);
+  return { isPxpk: true, valid: pxpkChecksum(payload) === checksum, payload };
+}
+
 // ── Bit helpers ─────────────────────────────────────────────────────────────
 
 /**
@@ -281,7 +315,7 @@ export function decodeVideo(fileBuffer: Buffer): Buffer {
   return payload;
 }
 
-// ── Steganalysis features ────────────────────────────────────────────────────
+// ── Core analysis primitives ─────────────────────────────────────────────────
 
 export interface StegoFeatures {
   entropy: number;
@@ -333,7 +367,161 @@ function blockLsbStdev(bytes: Uint8Array, blockSize = 64): number {
   return Math.sqrt(variance);
 }
 
-export async function analyzeImageFeatures(fileBuffer: Buffer): Promise<StegoFeatures> {
+// ── RS Analysis ──────────────────────────────────────────────────────────────
+// For consecutive pairs, flip the LSB of the first element and measure the
+// change in a local discrimination function. Under LSB steganography, Regular
+// and Singular group counts converge (ratio → 0.5). Under natural images the
+// ratio is noticeably higher than 0.5.
+
+function computeRsScore(bytes: Uint8Array): number {
+  let R = 0, S = 0;
+  for (let i = 0; i + 1 < bytes.length; i += 2) {
+    const a = bytes[i];
+    const b = bytes[i + 1];
+    const f0 = Math.abs(a - b);
+    const f1 = Math.abs((a ^ 1) - b); // flip LSB of a
+    if (f1 > f0) R++;
+    else if (f1 < f0) S++;
+  }
+  const total = R + S;
+  if (total === 0) return 0;
+  const ratio = R / total; // clean: ~0.65–0.80  stego: ~0.50
+  const deviation = Math.abs(ratio - 0.5);
+  // 0 deviation → score 1.0 (stego), 0.2 deviation → score 0.0 (clean)
+  return Math.max(0, 1 - deviation / 0.2);
+}
+
+// ── Sample Pair Analysis (SPA) ────────────────────────────────────────────────
+// Measures the bias between ascending/descending pairs for even and odd pixels.
+// Under LSB replacement the bias diminishes; under clean images it is higher.
+
+function computeSpaScore(bytes: Uint8Array): number {
+  let W = 0, X = 0, Y = 0, Z = 0; // W/X: even u; Y/Z: odd u
+  for (let i = 0; i + 1 < bytes.length; i++) {
+    const u = bytes[i], v = bytes[i + 1];
+    if ((u & 1) === 0) {
+      if (u < v) W++; else if (u > v) X++;
+    } else {
+      if (u < v) Y++; else if (u > v) Z++;
+    }
+  }
+  const wxTotal = W + X;
+  const yzTotal = Y + Z;
+  const biasWX = wxTotal > 0 ? Math.abs(W - X) / wxTotal : 1;
+  const biasYZ = yzTotal > 0 ? Math.abs(Y - Z) / yzTotal : 1;
+  const avgBias = (biasWX + biasYZ) / 2;
+  // Low bias → stego (score → 1), high bias → clean (score → 0)
+  return Math.max(0, 1 - avgBias / 0.15);
+}
+
+// ── Histogram Pair Analysis ───────────────────────────────────────────────────
+// LSB embedding equalises (v, v+1) value pairs. Measures how equalized the
+// histogram pairs are: high equalization → likely embedded.
+
+function computeHistScore(bytes: Uint8Array): number {
+  const freq = new Float64Array(256);
+  for (const b of bytes) freq[b]++;
+  let totalImbalance = 0;
+  let count = 0;
+  for (let k = 0; k < 128; k++) {
+    const a = freq[2 * k], b = freq[2 * k + 1];
+    const sum = a + b;
+    if (sum < 2) continue;
+    totalImbalance += Math.abs(a - b) / sum;
+    count++;
+  }
+  if (count === 0) return 0;
+  const avgImbalance = totalImbalance / count;
+  // Equalized (low imbalance) → stego, natural (high imbalance) → clean
+  return Math.max(0, 1 - avgImbalance / 0.2);
+}
+
+// ── Multi-bit Plane Entropy ───────────────────────────────────────────────────
+// Under LSB steganography only bit-plane 0 is modified; it becomes uniformly
+// random (entropy ≈ 1.0). Natural images have a structured LSB plane.
+
+function bitPlaneEntropy(bytes: Uint8Array, plane: number): number {
+  let ones = 0;
+  for (const b of bytes) ones += (b >> plane) & 1;
+  const p = ones / bytes.length;
+  if (p <= 0 || p >= 1) return 0;
+  return -(p * Math.log2(p) + (1 - p) * Math.log2(1 - p));
+}
+
+// ── Local Block Analysis ──────────────────────────────────────────────────────
+// Measures entropy variance across fixed-size pixel blocks. Uniform entropy
+// across all blocks is a sign of embedding.
+
+function blockEntropyVariance(bytes: Uint8Array, blockSize = 256): number {
+  const entropies: number[] = [];
+  for (let i = 0; i + blockSize <= bytes.length; i += blockSize) {
+    entropies.push(shannonEntropy(bytes.subarray(i, i + blockSize)));
+  }
+  if (entropies.length < 2) return 0;
+  const mean = entropies.reduce((a, b) => a + b, 0) / entropies.length;
+  return entropies.reduce((s, e) => s + (e - mean) ** 2, 0) / entropies.length;
+}
+
+// ── Ensemble verdict ─────────────────────────────────────────────────────────
+
+export type Verdict = "CLEAN" | "SUSPECT" | "STEGO" | "PIXELPEEK";
+
+export interface DetailedResult {
+  features: StegoFeatures;
+  verdict: Verdict;
+  probability: number;
+}
+
+function ensembleClassify(bytes: Uint8Array): { probability: number; verdict: "CLEAN" | "SUSPECT" | "STEGO" } {
+  const lsbRat = lsbRatioOf(bytes);
+  const lsbDev = Math.abs(lsbRat - 0.5);
+  const chi = chiSquarePairs(bytes);
+  const blkStdev = blockLsbStdev(bytes);
+
+  const rs = computeRsScore(bytes);
+  const spa = computeSpaScore(bytes);
+  const hist = computeHistScore(bytes);
+
+  // Bit-plane 0 near max entropy → LSB has been randomized
+  const lsbPlaneEnt = bitPlaneEntropy(bytes, 0);
+  const lsbEntScore = lsbPlaneEnt > 0.95 ? 1 : lsbPlaneEnt > 0.9 ? 0.5 : 0;
+
+  // Block entropy variance: near-zero means uniform embedding
+  const blkEntVar = blockEntropyVariance(bytes);
+  const blkEntScore = blkEntVar < 0.05 ? 0.5 : 0; // small boost for very uniform blocks
+
+  // Individual feature scores
+  const lsbDevScore = 1 - Math.min(1, lsbDev / 0.15);  // low deviation → stego
+  const chiScore    = Math.min(1, chi * 2);             // high chi → stego
+  const blkScore    = 1 - Math.min(1, blkStdev / 0.08); // low stdev → stego
+
+  // Weighted ensemble
+  const raw =
+    0.28 * rs +
+    0.22 * spa +
+    0.18 * hist +
+    0.12 * chiScore +
+    0.08 * lsbDevScore +
+    0.06 * blkScore +
+    0.04 * lsbEntScore +
+    0.02 * blkEntScore;
+
+  let probability = Math.max(0, Math.min(1, raw));
+
+  // Spec rule: strong RS or SPA must produce at least SUSPECT
+  if (rs > 0.65 || spa > 0.65) probability = Math.max(probability, 0.56);
+
+  let verdict: "CLEAN" | "SUSPECT" | "STEGO";
+  if (probability >= 0.80) verdict = "STEGO";
+  else if (probability >= 0.55) verdict = "SUSPECT";
+  else verdict = "CLEAN";
+
+  return { probability, verdict };
+}
+
+// ── Detailed classify functions ───────────────────────────────────────────────
+
+export async function classifyImageDetailed(fileBuffer: Buffer): Promise<DetailedResult> {
   const { Jimp, intToRGBA } = await import("jimp");
   const img = await Jimp.fromBuffer(fileBuffer);
   const { width, height } = img.bitmap;
@@ -345,83 +533,142 @@ export async function analyzeImageFeatures(fileBuffer: Buffer): Promise<StegoFea
     }
   }
   const bytes = new Uint8Array(pixels);
+
   const lsb = lsbRatioOf(bytes);
-  return {
+  const features: StegoFeatures = {
     entropy: shannonEntropy(bytes),
     lsbRatio: lsb,
     lsbDeviation: Math.abs(lsb - 0.5),
     chiSquare: chiSquarePairs(bytes),
     blockLsbStdev: blockLsbStdev(bytes),
   };
+
+  // Step 1: PixelPeek signature detection (highest priority)
+  try {
+    const extracted = extractLSB(Buffer.from(bytes));
+    const unwrapped = tryUnwrapPxpkSignature(extracted);
+    if (unwrapped.isPxpk && unwrapped.valid) {
+      return { features, verdict: "PIXELPEEK", probability: 1.0 };
+    }
+    // Successful extraction of a plausible payload → strong stego signal
+    if (!unwrapped.isPxpk && extracted.length > 0) {
+      const text = extracted.toString("utf-8");
+      const printable = [...text].filter(c => c.charCodeAt(0) >= 0x20 && c.charCodeAt(0) < 0x7f).length;
+      if (printable / text.length > 0.8 && !text.includes("\uFFFD")) {
+        const { features: f2 } = { features };
+        return { features: f2, verdict: "STEGO", probability: 0.95 };
+      }
+    }
+  } catch {
+    // no payload found; proceed with statistical analysis
+  }
+
+  // Step 2: Multi-layer statistical ensemble
+  const { probability, verdict } = ensembleClassify(bytes);
+  return { features, verdict, probability };
 }
 
-export function analyzeAudioFeatures(fileBuffer: Buffer, ext = ".wav"): StegoFeatures {
+export function classifyAudioDetailed(fileBuffer: Buffer, ext = ".wav"): DetailedResult {
   let wavBuf: Buffer;
   try {
-    if (isWav(fileBuffer)) {
-      wavBuf = fileBuffer;
-    } else {
-      wavBuf = convertToWav(fileBuffer, ext);
-    }
+    wavBuf = isWav(fileBuffer) ? fileBuffer : convertToWav(fileBuffer, ext);
     const { samples } = parseWavSamples(wavBuf);
     const lowBytes = new Uint8Array(Math.floor(samples.length / 2));
     for (let i = 0; i < lowBytes.length; i++) {
       lowBytes[i] = samples.readInt16LE(i * 2) & 0xff;
     }
+
     const lsb = lsbRatioOf(lowBytes);
-    return {
+    const features: StegoFeatures = {
       entropy: shannonEntropy(lowBytes),
       lsbRatio: lsb,
       lsbDeviation: Math.abs(lsb - 0.5),
       chiSquare: chiSquarePairs(lowBytes),
       blockLsbStdev: blockLsbStdev(lowBytes),
     };
+
+    // Try PXPK signature in extracted audio payload
+    try {
+      const extracted = extractLSB(Buffer.from(lowBytes));
+      const unwrapped = tryUnwrapPxpkSignature(extracted);
+      if (unwrapped.isPxpk && unwrapped.valid) {
+        return { features, verdict: "PIXELPEEK", probability: 1.0 };
+      }
+    } catch { /* no payload */ }
+
+    const { probability, verdict } = ensembleClassify(lowBytes);
+    return { features, verdict, probability };
   } catch {
-    // Fallback: analyze raw bytes
+    // Fallback: raw bytes
     const slice = new Uint8Array(fileBuffer.subarray(0, Math.min(65536, fileBuffer.length)));
     const lsb = lsbRatioOf(slice);
-    return {
+    const features: StegoFeatures = {
       entropy: shannonEntropy(slice),
       lsbRatio: lsb,
       lsbDeviation: Math.abs(lsb - 0.5),
       chiSquare: chiSquarePairs(slice),
       blockLsbStdev: blockLsbStdev(slice),
     };
+    const { probability, verdict } = ensembleClassify(slice);
+    return { features, verdict, probability };
   }
 }
 
-export function analyzeVideoFeatures(fileBuffer: Buffer): StegoFeatures {
-  // If the file has our magic markers, it's definitely stego
+export function classifyVideoDetailed(fileBuffer: Buffer): DetailedResult {
   const hasMagic =
     fileBuffer.lastIndexOf(MAGIC_END) >= 0 &&
     fileBuffer.lastIndexOf(MAGIC_START) >= 0;
 
   if (hasMagic) {
-    // Return features that will score as STEGO
-    return {
-      entropy: 7.9,
-      lsbRatio: 0.5,
-      lsbDeviation: 0.0,
-      chiSquare: 0.95,
-      blockLsbStdev: 0.01,
-    };
+    // Try to extract and check for PXPK signature inside the video payload
+    try {
+      const payload = decodeVideo(fileBuffer);
+      const unwrapped = tryUnwrapPxpkSignature(payload);
+      const verdict: Verdict = unwrapped.isPxpk && unwrapped.valid ? "PIXELPEEK" : "STEGO";
+      return {
+        features: { entropy: 7.9, lsbRatio: 0.5, lsbDeviation: 0.0, chiSquare: 0.95, blockLsbStdev: 0.01 },
+        verdict,
+        probability: 1.0,
+      };
+    } catch {
+      return {
+        features: { entropy: 7.9, lsbRatio: 0.5, lsbDeviation: 0.0, chiSquare: 0.95, blockLsbStdev: 0.01 },
+        verdict: "STEGO",
+        probability: 1.0,
+      };
+    }
   }
 
-  // Sample a slice of bytes from the middle of the video for analysis
+  // Statistical analysis on a mid-section slice
   const start = Math.floor(fileBuffer.length * 0.1);
   const end = Math.min(start + 65536, fileBuffer.length);
   const bytes = new Uint8Array(fileBuffer.subarray(start, end));
   const lsb = lsbRatioOf(bytes);
-  return {
+  const features: StegoFeatures = {
     entropy: shannonEntropy(bytes),
     lsbRatio: lsb,
     lsbDeviation: Math.abs(lsb - 0.5),
     chiSquare: chiSquarePairs(bytes),
     blockLsbStdev: blockLsbStdev(bytes),
   };
+  const { probability, verdict } = ensembleClassify(bytes);
+  return { features, verdict, probability };
 }
 
-// ── Classifier ─────────────────────────────────────────────────────────────
+// ── Legacy analysis functions (kept for backward compatibility) ───────────────
+
+export async function analyzeImageFeatures(fileBuffer: Buffer): Promise<StegoFeatures> {
+  const result = await classifyImageDetailed(fileBuffer);
+  return result.features;
+}
+
+export function analyzeAudioFeatures(fileBuffer: Buffer, ext = ".wav"): StegoFeatures {
+  return classifyAudioDetailed(fileBuffer, ext).features;
+}
+
+export function analyzeVideoFeatures(fileBuffer: Buffer): StegoFeatures {
+  return classifyVideoDetailed(fileBuffer).features;
+}
 
 export function classifySteganography(f: StegoFeatures): number {
   const deviationScore = 1 - Math.min(1, f.lsbDeviation / 0.3);

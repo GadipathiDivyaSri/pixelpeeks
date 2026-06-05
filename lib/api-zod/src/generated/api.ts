@@ -103,7 +103,7 @@ export const DetectSteganographyBody = zod.object({
 })
 
 export const DetectSteganographyResponse = zod.object({
-  "verdict": zod.enum(['CLEAN', 'SUSPECT', 'STEGO']),
+  "verdict": zod.enum(['CLEAN', 'SUSPECT', 'STEGO', 'PIXELPEEK']),
   "probability": zod.number(),
   "carrier": zod.enum(['image', 'audio', 'video']),
   "features": zod.object({
@@ -142,7 +142,7 @@ export const ListEventsResponseItem = zod.object({
   "operation": zod.enum(['encode', 'decode', 'detect']),
   "carrier": zod.enum(['image', 'audio', 'video']),
   "filename": zod.string(),
-  "verdict": zod.union([zod.literal('CLEAN'),zod.literal('SUSPECT'),zod.literal('STEGO'),zod.literal(null)]).nullish(),
+  "verdict": zod.union([zod.literal('CLEAN'),zod.literal('SUSPECT'),zod.literal('STEGO'),zod.literal('PIXELPEEK'),zod.literal(null)]).nullish(),
   "failed": zod.boolean(),
   "createdAt": zod.coerce.date()
 })

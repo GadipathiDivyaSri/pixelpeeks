@@ -343,7 +343,7 @@ export default function Encode() {
           >
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div>
-              <div className="font-black mb-1">Encoding failed</div>
+              <div className="font-black mb-1">Peek In failed</div>
               <div className="font-medium text-sm">
                 {getErrorMessage(encodeFile.error)}
               </div>

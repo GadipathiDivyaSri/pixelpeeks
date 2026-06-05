@@ -331,7 +331,7 @@ components:
       properties:
         verdict:
           type: string
-          enum: [CLEAN, SUSPECT, STEGO]
+          enum: [CLEAN, SUSPECT, STEGO, PIXELPEEK]
         probability:
           type: number
         carrier:
@@ -386,7 +386,7 @@ components:
           type: string
         verdict:
           type: ["string", "null"]
-          enum: [CLEAN, SUSPECT, STEGO, null]
+          enum: [CLEAN, SUSPECT, STEGO, PIXELPEEK, null]
         failed:
           type: boolean
         createdAt:

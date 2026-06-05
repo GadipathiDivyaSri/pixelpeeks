@@ -16,17 +16,18 @@ export default function History() {
   const getVerdictStyle = (verdict?: string | null) => {
     if (!verdict) return "bg-muted text-muted-foreground border-border";
     switch (verdict) {
-      case "STEGO":   return "bg-destructive text-white border-destructive";
-      case "SUSPECT": return "bg-[hsl(var(--chart-2))] text-foreground border-[hsl(var(--chart-2))]";
-      case "CLEAN":   return "bg-[hsl(var(--chart-3))] text-foreground border-[hsl(var(--chart-3))]";
-      default:        return "bg-muted text-foreground border-muted";
+      case "STEGO":     return "bg-destructive text-white border-destructive";
+      case "SUSPECT":   return "bg-[hsl(var(--chart-2))] text-foreground border-[hsl(var(--chart-2))]";
+      case "CLEAN":     return "bg-[hsl(var(--chart-3))] text-foreground border-[hsl(var(--chart-3))]";
+      case "PIXELPEEK": return "bg-[hsl(var(--chart-4))] text-foreground border-[hsl(var(--chart-4))]";
+      default:          return "bg-muted text-foreground border-muted";
     }
   };
 
   const getOpDetails = (op: string) => {
     switch (op) {
-      case "encode": return { icon: Lock, emoji: "🔐", color: "bg-[hsl(var(--chart-1))]", label: "Encode" };
-      case "decode": return { icon: Unlock, emoji: "🕵", color: "bg-[hsl(var(--chart-4))]", label: "Decode" };
+      case "encode": return { icon: Lock, emoji: "🔐", color: "bg-[hsl(var(--chart-1))]", label: "Peek In" };
+      case "decode": return { icon: Unlock, emoji: "🕵", color: "bg-[hsl(var(--chart-4))]", label: "Peek Out" };
       case "detect": return { icon: Search, emoji: "🔍", color: "bg-[hsl(var(--chart-2))]", label: "Peek" };
       default:       return { icon: CheckCircle, emoji: "✓", color: "bg-muted", label: op };
     }
@@ -55,7 +56,7 @@ export default function History() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
         {[
           { emoji: "🔢", label: "Total Ops", val: stats?.totalOps ?? 0, color: "bg-[hsl(var(--chart-5))]" },
-          { emoji: "🔐", label: "Encodes", val: stats?.encodes ?? 0, color: "bg-[hsl(var(--chart-1))]" },
+          { emoji: "🔐", label: "Peek In", val: stats?.encodes ?? 0, color: "bg-[hsl(var(--chart-1))]" },
           { emoji: "🔍", label: "Peeks", val: stats?.peeks ?? 0, color: "bg-[hsl(var(--chart-2))]" },
           { emoji: "🎯", label: "Stego Hits", val: stats?.stegoHits ?? 0, color: "bg-[hsl(var(--chart-3))]" },
         ].map((stat, i) => (
@@ -144,7 +145,7 @@ export default function History() {
             <div className="flex gap-4">
               <Link href="/encode">
                 <button className="bg-[hsl(var(--chart-1))] px-6 py-3 rounded-full border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] font-bold hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-foreground">
-                  🔐 Encode
+                  🔐 Peek In
                 </button>
               </Link>
               <Link href="/peek">

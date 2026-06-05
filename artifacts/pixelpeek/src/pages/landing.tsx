@@ -237,7 +237,7 @@ export default function Landing() {
               {
                 icon: Lock,
                 emoji: "🔐",
-                title: "Encode",
+                title: "Peek In",
                 desc: "Slip a secret into any image, audio, or video using LSB steganography. Optional AES-256 encryption wraps it tight.",
                 href: "/encode",
                 cardBg: "hsl(var(--chart-1))",
@@ -245,7 +245,7 @@ export default function Landing() {
               {
                 icon: Zap,
                 emoji: "🕵",
-                title: "Decode",
+                title: "Peek Out",
                 desc: "Got a carrier file? Drop it in. Reveal the hidden message in one click — with full detective mode.",
                 href: "/decode",
                 cardBg: "hsl(var(--chart-4))",
@@ -406,7 +406,7 @@ export default function Landing() {
             <div className="relative z-10 flex gap-3 flex-wrap">
               <Link href="/register">
                 <button data-testid="cta-encode" className="px-8 py-4 bg-[hsl(var(--chart-2))] rounded-full border-2 border-border font-black text-foreground shadow-[4px_4px_0_0_hsl(var(--border))] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all whitespace-nowrap">
-                  Encode now ✨
+                  Peek In now ✨
                 </button>
               </Link>
             </div>

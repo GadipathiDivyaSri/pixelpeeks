@@ -26,8 +26,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: "/dashboard", label: "Home", icon: Home, color: "bg-[hsl(270,60%,78%)]" },
-    { href: "/encode", label: "Encode", icon: FileLock, color: "bg-[hsl(330,80%,72%)]" },
-    { href: "/decode", label: "Decode", icon: Eye, color: "bg-[hsl(200,80%,76%)]" },
+    { href: "/encode", label: "Peek In", icon: FileLock, color: "bg-[hsl(330,80%,72%)]" },
+    { href: "/decode", label: "Peek Out", icon: Eye, color: "bg-[hsl(200,80%,76%)]" },
     { href: "/peek", label: "Peek", icon: Search, color: "bg-[hsl(50,95%,75%)]" },
     { href: "/history", label: "History", icon: Clock, color: "bg-[hsl(142,60%,72%)]" },
   ];

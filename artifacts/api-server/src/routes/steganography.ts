@@ -20,10 +20,11 @@ import {
   decodeAudio,
   encodeVideo,
   decodeVideo,
-  analyzeImageFeatures,
-  analyzeAudioFeatures,
-  analyzeVideoFeatures,
-  classifySteganography,
+  wrapWithPxpkSignature,
+  tryUnwrapPxpkSignature,
+  classifyImageDetailed,
+  classifyAudioDetailed,
+  classifyVideoDetailed,
 } from "../lib/steg";
 
 const router: IRouter = Router();
@@ -79,6 +80,8 @@ router.post("/encode", upload.single("file"), async (req, res): Promise<void> =>
     if (key && key.trim().length > 0) {
       payload = Buffer.from(encryptPayload(payload, key.trim()));
     }
+    // Wrap with PXPK_V1 signature so detection can identify PixelPeek-origin files
+    payload = wrapWithPxpkSignature(payload);
 
     const fileExt = path.extname(file.originalname).toLowerCase() || ".wav";
     let outBuf: Buffer;
@@ -149,16 +152,19 @@ router.post("/decode", upload.single("file"), async (req, res): Promise<void> =>
       rawPayload = decodeVideo(file.buffer);
     }
 
+    // Strip PXPK_V1 signature if present
+    const unwrapped = tryUnwrapPxpkSignature(rawPayload);
+    const innerPayload = unwrapped.valid ? unwrapped.payload : rawPayload;
+
     let message: string;
     let encrypted = false;
 
     if (key && key.trim().length > 0) {
       encrypted = true;
-      const plain = decryptPayload(rawPayload, key.trim());
+      const plain = decryptPayload(innerPayload, key.trim());
       message = plain.toString("utf-8");
     } else {
-      // Try to decode as UTF-8 text directly
-      message = rawPayload.toString("utf-8");
+      message = innerPayload.toString("utf-8");
     }
 
     // Sanity check — if the result isn't printable it's likely wrong key
@@ -200,26 +206,25 @@ router.post("/detect", upload.single("file"), async (req, res): Promise<void> =>
 
   try {
     const fileExt = path.extname(file.originalname).toLowerCase() || ".wav";
-    let features;
+    let result;
     if (carrier === "image") {
-      features = await analyzeImageFeatures(file.buffer);
+      result = await classifyImageDetailed(file.buffer);
     } else if (carrier === "audio") {
-      features = analyzeAudioFeatures(file.buffer, fileExt);
+      result = classifyAudioDetailed(file.buffer, fileExt);
     } else {
-      features = analyzeVideoFeatures(file.buffer);
+      result = classifyVideoDetailed(file.buffer);
     }
 
-    const probability = classifySteganography(features);
-    let verdict: "CLEAN" | "SUSPECT" | "STEGO";
-    if (probability >= 0.80) verdict = "STEGO";
-    else if (probability >= 0.55) verdict = "SUSPECT";
-    else verdict = "CLEAN";
+    const { features, verdict, probability } = result;
+
+    // Store stego hits for STEGO + PIXELPEEK verdicts
+    const dbVerdict = verdict === "PIXELPEEK" ? "STEGO" : verdict;
 
     await db.insert(eventsTable).values({
       operation: "detect",
       carrier,
       filename: file.originalname,
-      verdict,
+      verdict: dbVerdict,
       failed: false,
     });
 

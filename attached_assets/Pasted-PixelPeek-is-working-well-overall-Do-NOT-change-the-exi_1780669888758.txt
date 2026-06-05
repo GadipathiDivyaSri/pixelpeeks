@@ -1,0 +1,136 @@
+PixelPeek is working well overall. Do NOT change the existing UI design, layout, animations, colors, cards, typography, navigation, branding, responsiveness, upload flow, or any feature that is already functioning correctly.
+
+The ONLY changes required are:
+
+1. Rename Features
+
+* Encode → Peek In
+* Decode → Peek Out
+
+Update all buttons, labels, navigation items, tooltips, and user-facing text accordingly.
+
+Definitions:
+
+* Peek In = Hide a secret inside an image
+* Peek Out = Reveal a secret from an image
+
+2. Improve Detection Accuracy
+
+Current issue:
+The analyzer sometimes marks images as CLEAN even when they contain hidden data. The current implementation appears to rely mainly on entropy, chi-square, and simple LSB statistics, which causes false negatives.
+
+Without changing the UI, replace the detection backend with a more reliable multi-layer detection system.
+
+Implement:
+
+A. PixelPeek Signature Detection
+
+* When Peek In embeds data, prepend a custom header:
+  PXPK_V1
+  payload_length
+  checksum
+* During analysis, scan for this signature first.
+* If found, immediately classify as:
+  "PixelPeek Payload Found"
+
+B. Actual Payload Extraction Test
+
+* Attempt extraction from embedded bit planes.
+* Validate:
+
+  * Header
+  * Payload length
+  * Checksum
+  * UTF-8 validity
+* Successful extraction should heavily increase confidence.
+
+C. Multi-Bit Analysis
+Analyze:
+
+* RGB channels
+* LSB plane 0
+* LSB plane 1
+* LSB plane 2
+
+Measure:
+
+* Bit distribution
+* Randomness
+* Entropy
+* Pattern irregularities
+
+D. RS Analysis
+Implement Regular/Singular steganalysis for improved detection of LSB embedding.
+
+E. Sample Pair Analysis (SPA)
+Use SPA to estimate hidden payload likelihood and size.
+
+F. Histogram Analysis
+Analyze:
+
+* RGB histograms
+* Difference histograms
+* Pair equalization effects
+* Pixel distribution anomalies
+
+G. Local Block Analysis
+Analyze image blocks for:
+
+* Entropy variance
+* Noise consistency
+* LSB variance
+
+H. Compression Artifact Detection
+
+* PNG: analyze raw pixel structures
+* JPEG: analyze DCT coefficient anomalies
+
+3. Ensemble Confidence Scoring
+
+Combine all techniques into a weighted score:
+
+Priority order:
+
+1. Signature Detection
+2. Successful Extraction
+3. RS Analysis
+4. SPA Analysis
+5. Histogram Analysis
+6. Entropy Analysis
+7. Chi-Square Analysis
+
+Verdicts:
+
+🟢 Clean
+No evidence of hidden data.
+
+🟡 Suspicious
+Some statistical anomalies detected.
+
+🔴 Hidden Data Detected
+Strong evidence of steganographic content.
+
+🔵 PixelPeek Payload Found
+PixelPeek signature successfully extracted and verified.
+
+Rules:
+
+* Never classify as Clean if a valid payload is extracted.
+* Never classify as Clean if a PixelPeek signature is detected.
+* Strong RS or SPA indicators should produce at least a Suspicious verdict.
+
+4. Preserve Everything Else
+
+Do NOT modify:
+
+* Existing UI appearance
+* Existing animations
+* Existing cards
+* Existing color palette
+* Existing layout
+* Existing responsiveness
+* Existing branding
+* Existing upload experience
+* Existing visual styling
+
+Only improve the detection engine and rename Encode/Decode to Peek In/Peek Out while keeping the rest of the application visually identical.

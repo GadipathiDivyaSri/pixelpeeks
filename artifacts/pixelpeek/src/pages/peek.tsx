@@ -33,6 +33,17 @@ export default function Peek() {
 
   const getVerdictDetails = (verdict: string, prob: number) => {
     switch (verdict) {
+      case "PIXELPEEK":
+        return {
+          emoji: "🔵",
+          color: "text-[hsl(var(--chart-4))]",
+          bg: "bg-[hsl(var(--chart-4))/15]",
+          border: "border-[hsl(var(--chart-4))]",
+          gaugeBg: "hsl(var(--chart-4))",
+          label: "PIXELPEEK PAYLOAD",
+          icon: Bug,
+          summary: `PixelPeek signature confirmed! This file was created with Peek In and contains a verified hidden payload with PXPK_V1 signature.`,
+        };
       case "STEGO":
         return {
           emoji: "🔴",

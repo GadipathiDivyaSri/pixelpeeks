@@ -243,8 +243,8 @@ export default function Home() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { title: "Encode", desc: "Hide secrets inside files using real LSB steganography", icon: Lock, color: "bg-[hsl(var(--chart-1))]", href: "/encode", emoji: "🔐" },
-            { title: "Decode", desc: "Extract hidden messages from carrier files instantly", icon: Unlock, color: "bg-[hsl(var(--chart-4))]", href: "/decode", emoji: "🕵" },
+            { title: "Peek In", desc: "Hide secrets inside files using real LSB steganography", icon: Lock, color: "bg-[hsl(var(--chart-1))]", href: "/encode", emoji: "🔐" },
+            { title: "Peek Out", desc: "Extract hidden messages from carrier files instantly", icon: Unlock, color: "bg-[hsl(var(--chart-4))]", href: "/decode", emoji: "🕵" },
             { title: "Peek", desc: "Analyze suspicious files for steganographic anomalies", icon: Search, color: "bg-[hsl(var(--chart-2))]", href: "/peek", emoji: "🔍" },
           ].map((tool, i) => (
             <motion.div
@@ -347,7 +347,7 @@ export default function Home() {
         <div className="relative z-10 flex flex-col sm:flex-row gap-4">
           <Link href="/encode">
             <button data-testid="button-cta-encode" className="bg-white text-foreground text-xl font-black px-8 py-4 rounded-full border-4 border-border shadow-[6px_6px_0_0_hsl(var(--border))] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all whitespace-nowrap">
-              Encode now →
+              Peek In now →
             </button>
           </Link>
         </div>
