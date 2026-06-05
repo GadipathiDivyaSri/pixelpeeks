@@ -101,10 +101,6 @@ export default function Encode() {
   ];
 
   const activeTabData = tabs.find((t) => t.id === activeTab)!;
-  const capacity = file ? estimateCapacityBytes(file, activeTab) : null;
-  const msgBytes = new TextEncoder().encode(message).length;
-  const capacityPct = capacity ? Math.min(100, (msgBytes / capacity) * 100) : 0;
-  const charsLeft = MAX_CHARS - message.length;
 
   const getErrorMessage = (error: unknown): string => {
     if (!error) return "Failed to encode file. Please try again.";
@@ -243,34 +239,6 @@ export default function Encode() {
           )}
         </div>
 
-        {capacity !== null && file && (
-          <div className="bg-card border-2 border-border rounded-2xl px-5 py-3 flex flex-col gap-1.5 shadow-[4px_4px_0_0_hsl(var(--border))]">
-            <div className="flex justify-between text-xs font-bold font-mono">
-              <span>Capacity</span>
-              <span>
-                {msgBytes} / {capacity} bytes ({capacityPct.toFixed(1)}%)
-              </span>
-            </div>
-            <div className="h-2.5 bg-muted rounded-full overflow-hidden border border-border">
-              <motion.div
-                animate={{ width: `${capacityPct}%` }}
-                transition={{ duration: 0.4 }}
-                className={`h-full rounded-full ${
-                  capacityPct > 90
-                    ? "bg-destructive"
-                    : capacityPct > 60
-                      ? "bg-[hsl(var(--chart-2))]"
-                      : "bg-[hsl(var(--chart-3))]"
-                }`}
-              />
-            </div>
-            {capacityPct > 90 && (
-              <p className="text-xs text-destructive font-bold">
-                ⚠ Near capacity — message may be too long for this file.
-              </p>
-            )}
-          </div>
-        )}
 
         <div className="bg-[#FBCFE8] dark:bg-card border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] rounded-[2rem] p-6 md:p-8 flex flex-col gap-6">
           <div className="flex flex-col gap-2">
@@ -278,16 +246,11 @@ export default function Encode() {
               <label className="font-black text-lg flex items-center gap-2 text-[#0F172A] dark:text-foreground">
                 💌 Secret Message <span className="text-[#FB7185]">*</span>
               </label>
-              <span
-                className={`font-mono text-xs font-bold ${charsLeft < 200 ? "text-destructive" : "text-[#0F172A]/50 dark:text-muted-foreground"}`}
-              >
-                {charsLeft} left
-              </span>
             </div>
             <textarea
               data-testid="input-message"
               value={message}
-              onChange={(e) => setMessage(e.target.value.slice(0, MAX_CHARS))}
+              onChange={(e) => setMessage(e.target.value)}
               placeholder="Whisper something only your friend can hear…"
               className="w-full min-h-[140px] p-4 rounded-xl border-2 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all resize-none font-medium text-base outline-none bg-white/80 dark:bg-background"
               required
@@ -353,7 +316,7 @@ export default function Encode() {
           data-testid="button-submit-encode"
           type="submit"
           disabled={
-            !file || !message || encodeFile.isPending || capacityPct > 100
+            !file || !message || encodeFile.isPending
           }
           className="bg-[#F43F5E] text-white text-2xl font-black py-5 rounded-2xl border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_#0F172A] transition-all flex justify-center items-center gap-3"
         >

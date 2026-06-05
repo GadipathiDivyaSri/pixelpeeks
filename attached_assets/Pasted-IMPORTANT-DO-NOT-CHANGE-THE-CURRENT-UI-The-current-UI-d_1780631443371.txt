@@ -1,0 +1,377 @@
+IMPORTANT: DO NOT CHANGE THE CURRENT UI
+
+The current UI, design, theme, colors, animations, cards, layout, navigation, and overall appearance are already good.
+
+DO NOT:
+
+- Redesign the UI
+- Change page layouts
+- Change colors
+- Change theme
+- Change animations
+- Change navigation
+- Change component structure
+- Change branding
+- Change styling
+
+Keep the current PixelPeeks UI exactly as it is.
+
+══════════════════════════════════════
+
+PRIMARY OBJECTIVE
+
+Currently the application looks good but the core functionality is not working properly.
+
+The focus should be entirely on making the functionality work correctly.
+
+══════════════════════════════════════
+
+CURRENT ISSUES
+
+Secret Sprinkle:
+
+- Not actually embedding messages.
+
+Secret Reveal:
+
+- Not actually extracting messages.
+
+Pixel Peek:
+
+- Appears to be analyzing file size instead of performing real steganalysis.
+
+These issues must be fixed.
+
+══════════════════════════════════════
+
+SECRET SPRINKLE (CURRENTLY ENCODE)
+
+Implement REAL steganography.
+
+Do not simulate.
+
+Do not generate fake success responses.
+
+Do not store messages separately.
+
+Actually embed hidden data inside the uploaded media.
+
+IMAGE STEGANOGRAPHY
+
+Use:
+
+- LSB (Least Significant Bit) Steganography
+
+Implement:
+
+- Real pixel manipulation
+- Payload length storage
+- Payload integrity verification
+- Password-protected embedding
+- AES-256 encrypted payloads
+
+Supported:
+
+PNG
+JPG
+JPEG
+WEBP
+BMP
+GIF
+TIFF
+
+══════════════════════════════════════
+
+AUDIO STEGANOGRAPHY
+
+Implement:
+
+- Real LSB Audio Steganography
+- Sample-level embedding
+- Payload integrity verification
+- AES encryption support
+
+Supported:
+
+WAV
+MP3
+AAC
+FLAC
+OGG
+M4A
+
+If needed:
+
+Convert internally to a suitable working format before processing.
+
+══════════════════════════════════════
+
+VIDEO STEGANOGRAPHY
+
+Implement:
+
+Frame-Based Steganography
+
+Process:
+
+Video
+→ Extract Frames
+→ Embed Secret Using LSB
+→ Rebuild Video
+
+Support:
+
+MP4
+MOV
+AVI
+MKV
+WEBM
+MPEG
+M4V
+3GP
+
+Features:
+
+- Random frame embedding
+- Multi-frame payload storage
+- AES encryption support
+- Payload integrity validation
+
+══════════════════════════════════════
+
+SECRET REVEAL (CURRENTLY DECODE)
+
+Implement REAL extraction.
+
+Images:
+
+- Read embedded LSB data
+- Recover payload
+- Decrypt payload
+- Display original message
+
+Audio:
+
+- Recover embedded payload
+- Decrypt payload
+- Display original message
+
+Video:
+
+- Extract frames
+- Recover payload
+- Reconstruct hidden message
+- Display original message
+
+The message shown must be the actual recovered hidden message.
+
+══════════════════════════════════════
+
+PIXEL PEEK (CURRENTLY PEEK)
+
+Remove all file-size based calculations.
+
+Do NOT generate random percentages.
+
+Do NOT estimate based on file size.
+
+Perform actual steganalysis.
+
+══════════════════════════════════════
+
+IMAGE ANALYSIS
+
+Implement:
+
+- LSB Detection
+- Histogram Analysis
+- RS Analysis
+- Chi-Square Analysis
+- Entropy Analysis
+- Metadata Inspection
+
+Generate probability score from actual analysis.
+
+══════════════════════════════════════
+
+AUDIO ANALYSIS
+
+Implement:
+
+- Spectrum Analysis
+- Frequency Analysis
+- Entropy Analysis
+- Sample Distribution Analysis
+- Metadata Analysis
+
+Generate probability score from actual analysis.
+
+══════════════════════════════════════
+
+VIDEO ANALYSIS
+
+Implement:
+
+- Frame Analysis
+- Entropy Analysis
+- Metadata Analysis
+- Frame Consistency Analysis
+- LSB Detection
+
+Generate probability score from actual analysis.
+
+══════════════════════════════════════
+
+ENCRYPTION
+
+Implement AES-256 encryption.
+
+Workflow:
+
+Message
+→ AES-256 Encrypt
+→ Embed
+
+Extraction:
+
+Extract
+→ AES-256 Decrypt
+→ Reveal
+
+Support:
+
+- Password Protection
+- Encryption Toggle
+- Secure Key Derivation
+
+══════════════════════════════════════
+
+FILE SUPPORT
+
+Support all common formats:
+
+Images:
+PNG
+JPG
+JPEG
+WEBP
+BMP
+GIF
+TIFF
+
+Audio:
+WAV
+MP3
+AAC
+FLAC
+OGG
+M4A
+
+Video:
+MP4
+MOV
+AVI
+MKV
+WEBM
+MPEG
+M4V
+3GP
+
+If a format is unsuitable for direct embedding:
+
+Automatically convert internally and continue processing.
+
+Do not simply reject supported formats.
+
+══════════════════════════════════════
+
+BUG FIXING
+
+Investigate and fix:
+
+- Upload failures
+- Encoding failures
+- Decoding failures
+- Peek analysis failures
+- Download failures
+- API route issues
+- Missing dependencies
+- FFmpeg configuration
+- File conversion issues
+- Encryption issues
+- Backend processing issues
+
+══════════════════════════════════════
+
+TESTING REQUIREMENTS
+
+The following must work:
+
+Test 1:
+
+Upload PNG
+
+Hide:
+"Hello World"
+
+Download encoded image.
+
+Upload encoded image.
+
+Reveal:
+
+"Hello World"
+
+══════════════════════════════════════
+
+Test 2:
+
+Upload WAV
+
+Hide:
+"Secret Audio Message"
+
+Download encoded audio.
+
+Upload encoded audio.
+
+Reveal:
+
+"Secret Audio Message"
+
+══════════════════════════════════════
+
+Test 3:
+
+Upload MP4
+
+Hide:
+"Hidden Video Message"
+
+Download encoded video.
+
+Upload encoded video.
+
+Reveal:
+
+"Hidden Video Message"
+
+══════════════════════════════════════
+
+FINAL REQUIREMENT
+
+Keep the UI exactly as it currently exists.
+
+Do not redesign anything.
+
+Do not modify appearance.
+
+Only improve and repair the functionality so that:
+
+✨ Secret Sprinkle actually embeds hidden messages.
+
+🪄 Secret Reveal actually extracts hidden messages.
+
+🔍 Pixel Peek performs real steganalysis.
+
+The application should function as a real steganography platform rather than a visual demonstration.
