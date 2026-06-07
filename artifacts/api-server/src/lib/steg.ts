@@ -248,9 +248,9 @@ export function encodeAudioWav(wavBuffer: Buffer, payload: Buffer): Buffer {
   const modifiedLow = embedLSB(lowBytes, payload);
   const newSamples = Buffer.from(samples);
   for (let i = 0; i < lowBytes.length; i++) {
-    const orig = samples.readInt16LE(i * 2);
+    const orig = samples.readUInt16LE(i * 2);
     const newVal = (orig & 0xff00) | modifiedLow[i];
-    newSamples.writeInt16LE(newVal, i * 2);
+    newSamples.writeUInt16LE(newVal & 0xffff, i * 2);
   }
   const tail = wavBuffer.subarray(header.length + samples.length);
   return Buffer.concat([header, newSamples, tail]);
