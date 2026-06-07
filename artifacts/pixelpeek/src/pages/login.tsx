@@ -136,14 +136,6 @@ export default function Login() {
                 {loginMutation.isPending ? "Signing in…" : "Sign in →"}
               </button>
 
-              <button
-                data-testid="button-demo"
-                type="button"
-                onClick={fillDemo}
-                className="w-full py-3 rounded-full border-2 border-[#0F172A] bg-[#FDE047] text-[#0F172A] font-bold text-sm shadow-[3px_3px_0_0_#0F172A] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
-              >
-                Use demo credentials
-              </button>
             </form>
 
             <p className="text-center text-sm font-medium text-[#0F172A]/60 mt-6">
