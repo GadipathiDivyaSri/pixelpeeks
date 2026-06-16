@@ -32,7 +32,7 @@ export const RegisterBody = zod.object({
 
 
 /**
- * @summary Log in with email and password
+ * @summary Log in — returns OTP challenge when credentials are valid
  */
 export const LoginBody = zod.object({
   "email": zod.string().email(),
@@ -40,18 +40,55 @@ export const LoginBody = zod.object({
 })
 
 export const LoginResponse = zod.object({
-  "token": zod.string(),
+  "requiresOtp": zod.boolean(),
+  "pendingToken": zod.string(),
+  "devOtp": zod.string().optional().describe('Only present in dev\/demo mode when no SMTP is configured')
+})
+
+
+/**
+ * @summary Send/resend an OTP for a given purpose
+ */
+export const SendOtpBody = zod.object({
+  "email": zod.string().email(),
+  "purpose": zod.enum(['login', 'forgot-password'])
+})
+
+export const SendOtpResponse = zod.object({
+  "message": zod.string(),
+  "devOtp": zod.string().optional().describe('Only present in dev\/demo mode when no SMTP is configured')
+})
+
+
+/**
+ * @summary Verify an OTP code
+ */
+export const verifyOtpBodyOtpMin = 6;
+export const verifyOtpBodyOtpMax = 6;
+
+
+
+export const VerifyOtpBody = zod.object({
+  "email": zod.string().email(),
+  "otp": zod.string().min(verifyOtpBodyOtpMin).max(verifyOtpBodyOtpMax),
+  "purpose": zod.enum(['login', 'forgot-password']),
+  "pendingToken": zod.string().optional()
+})
+
+export const VerifyOtpResponse = zod.object({
+  "token": zod.string().optional(),
   "user": zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "email": zod.string(),
   "createdAt": zod.coerce.date()
-})
+}).optional(),
+  "resetToken": zod.string().optional()
 })
 
 
 /**
- * @summary Request a password reset link
+ * @summary Request a password reset OTP
  */
 export const ForgotPasswordBody = zod.object({
   "email": zod.string().email()
@@ -59,7 +96,7 @@ export const ForgotPasswordBody = zod.object({
 
 export const ForgotPasswordResponse = zod.object({
   "message": zod.string(),
-  "resetToken": zod.string()
+  "devOtp": zod.string().optional().describe('Only present in dev\/demo mode when no SMTP is configured')
 })
 
 

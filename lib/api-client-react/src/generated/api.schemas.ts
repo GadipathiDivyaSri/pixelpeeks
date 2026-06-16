@@ -17,13 +17,77 @@ export interface RegisterBody {
   password: string;
 }
 
+export interface LoginBody {
+  email: string;
+  password: string;
+}
+
+export interface LoginOtpPending {
+  requiresOtp: boolean;
+  pendingToken: string;
+  /** Only present in dev/demo mode when no SMTP is configured */
+  devOtp?: string;
+}
+
+export type SendOtpBodyPurpose = typeof SendOtpBodyPurpose[keyof typeof SendOtpBodyPurpose];
+
+
+export const SendOtpBodyPurpose = {
+  login: 'login',
+  'forgot-password': 'forgot-password',
+} as const;
+
+export interface SendOtpBody {
+  email: string;
+  purpose: SendOtpBodyPurpose;
+}
+
+export interface SendOtpResult {
+  message: string;
+  /** Only present in dev/demo mode when no SMTP is configured */
+  devOtp?: string;
+}
+
+export type VerifyOtpBodyPurpose = typeof VerifyOtpBodyPurpose[keyof typeof VerifyOtpBodyPurpose];
+
+
+export const VerifyOtpBodyPurpose = {
+  login: 'login',
+  'forgot-password': 'forgot-password',
+} as const;
+
+export interface VerifyOtpBody {
+  email: string;
+  /**
+     * @minLength 6
+     * @maxLength 6
+     */
+  otp: string;
+  purpose: VerifyOtpBodyPurpose;
+  pendingToken?: string;
+}
+
+export interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
+export interface VerifyOtpResult {
+  token?: string;
+  user?: UserProfile;
+  resetToken?: string;
+}
+
 export interface ForgotPasswordBody {
   email: string;
 }
 
 export interface ForgotPasswordResult {
   message: string;
-  resetToken: string;
+  /** Only present in dev/demo mode when no SMTP is configured */
+  devOtp?: string;
 }
 
 export interface ResetPasswordBody {
@@ -34,18 +98,6 @@ export interface ResetPasswordBody {
 
 export interface ResetPasswordResult {
   message: string;
-}
-
-export interface LoginBody {
-  email: string;
-  password: string;
-}
-
-export interface UserProfile {
-  id: number;
-  name: string;
-  email: string;
-  createdAt: string;
 }
 
 export interface AuthResult {

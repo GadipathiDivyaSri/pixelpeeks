@@ -1,0 +1,2 @@
+- [OTP 2FA login flow](otp-2fa-flow.md) — login returns requiresOtp+pendingToken; useEffect with conditional cleanup needs early-return pattern to satisfy noImplicitReturns
+- [Babel mixed operators](babel-mixed-operators.md) — mixing || and ?? in a single expression requires parens around the ?? operand or Babel parser throws

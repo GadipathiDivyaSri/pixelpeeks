@@ -12,6 +12,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
+import OtpVerify from "@/pages/otp-verify";
 import Home from "@/pages/home";
 import Encode from "@/pages/encode";
 import Decode from "@/pages/decode";
@@ -33,8 +34,8 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   const { user, isLoading } = useAuth();
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
-        <div className="text-2xl font-black text-[#0F172A] animate-pulse" style={{ fontFamily: "Outfit, sans-serif" }}>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-2xl font-black text-foreground animate-pulse" style={{ fontFamily: "Outfit, sans-serif" }}>
           Loading…
         </div>
       </div>
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/otp-verify" component={OtpVerify} />
 
       {/* Protected */}
       <Route path="/dashboard">

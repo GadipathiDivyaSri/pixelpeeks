@@ -34,11 +34,16 @@ import type {
   HealthStatus,
   ListEventsParams,
   LoginBody,
+  LoginOtpPending,
   RegisterBody,
   ResetPasswordBody,
   ResetPasswordResult,
+  SendOtpBody,
+  SendOtpResult,
   Stats,
-  UserProfile
+  UserProfile,
+  VerifyOtpBody,
+  VerifyOtpResult
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -210,11 +215,11 @@ export const getLoginUrl = () => {
 }
 
 /**
- * @summary Log in with email and password
+ * @summary Log in — returns OTP challenge when credentials are valid
  */
-export const login = async (loginBody: LoginBody, options?: RequestInit): Promise<AuthResult> => {
+export const login = async (loginBody: LoginBody, options?: RequestInit): Promise<LoginOtpPending> => {
 
-  return customFetch<AuthResult>(getLoginUrl(),
+  return customFetch<LoginOtpPending>(getLoginUrl(),
   {
     ...options,
     method: 'POST',
@@ -259,7 +264,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type LoginMutationError = ErrorType<ErrorResponse>
 
     /**
- * @summary Log in with email and password
+ * @summary Log in — returns OTP challenge when credentials are valid
  */
 export const useLogin = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -272,6 +277,148 @@ export const useLogin = <TError = ErrorType<ErrorResponse>,
       return useMutation(getLoginMutationOptions(options));
     }
 
+export const getSendOtpUrl = () => {
+
+
+
+
+  return `/api/auth/send-otp`
+}
+
+/**
+ * @summary Send/resend an OTP for a given purpose
+ */
+export const sendOtp = async (sendOtpBody: SendOtpBody, options?: RequestInit): Promise<SendOtpResult> => {
+
+  return customFetch<SendOtpResult>(getSendOtpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sendOtpBody,)
+  }
+);}
+
+
+
+
+export const getSendOtpMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendOtp>>, TError,{data: BodyType<SendOtpBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendOtp>>, TError,{data: BodyType<SendOtpBody>}, TContext> => {
+
+const mutationKey = ['sendOtp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendOtp>>, {data: BodyType<SendOtpBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendOtp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendOtpMutationResult = NonNullable<Awaited<ReturnType<typeof sendOtp>>>
+    export type SendOtpMutationBody = BodyType<SendOtpBody>
+    export type SendOtpMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Send/resend an OTP for a given purpose
+ */
+export const useSendOtp = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendOtp>>, TError,{data: BodyType<SendOtpBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendOtp>>,
+        TError,
+        {data: BodyType<SendOtpBody>},
+        TContext
+      > => {
+      return useMutation(getSendOtpMutationOptions(options));
+    }
+
+export const getVerifyOtpUrl = () => {
+
+
+
+
+  return `/api/auth/verify-otp`
+}
+
+/**
+ * @summary Verify an OTP code
+ */
+export const verifyOtp = async (verifyOtpBody: VerifyOtpBody, options?: RequestInit): Promise<VerifyOtpResult> => {
+
+  return customFetch<VerifyOtpResult>(getVerifyOtpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      verifyOtpBody,)
+  }
+);}
+
+
+
+
+export const getVerifyOtpMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyOtp>>, TError,{data: BodyType<VerifyOtpBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyOtp>>, TError,{data: BodyType<VerifyOtpBody>}, TContext> => {
+
+const mutationKey = ['verifyOtp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyOtp>>, {data: BodyType<VerifyOtpBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyOtp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyOtpMutationResult = NonNullable<Awaited<ReturnType<typeof verifyOtp>>>
+    export type VerifyOtpMutationBody = BodyType<VerifyOtpBody>
+    export type VerifyOtpMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Verify an OTP code
+ */
+export const useVerifyOtp = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyOtp>>, TError,{data: BodyType<VerifyOtpBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyOtp>>,
+        TError,
+        {data: BodyType<VerifyOtpBody>},
+        TContext
+      > => {
+      return useMutation(getVerifyOtpMutationOptions(options));
+    }
+
 export const getForgotPasswordUrl = () => {
 
 
@@ -281,7 +428,7 @@ export const getForgotPasswordUrl = () => {
 }
 
 /**
- * @summary Request a password reset link
+ * @summary Request a password reset OTP
  */
 export const forgotPassword = async (forgotPasswordBody: ForgotPasswordBody, options?: RequestInit): Promise<ForgotPasswordResult> => {
 
@@ -330,7 +477,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ForgotPasswordMutationError = ErrorType<ErrorResponse>
 
     /**
- * @summary Request a password reset link
+ * @summary Request a password reset OTP
  */
 export const useForgotPassword = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof forgotPassword>>, TError,{data: BodyType<ForgotPasswordBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
