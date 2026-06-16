@@ -149,11 +149,6 @@ export default function Login() {
               </button>
             </form>
 
-            <div className="mt-6 p-3 bg-muted/50 rounded-xl border border-border">
-              <div className="text-xs font-bold text-foreground mb-1">🔐 How 2FA works</div>
-              <p className="text-xs text-muted-foreground">After entering your password, a 6-digit code is emailed to you. Enter it on the next screen to complete sign-in.</p>
-            </div>
-
             <p className="text-center text-sm font-medium text-muted-foreground mt-6">
               New here?{" "}
               <Link href="/register">
