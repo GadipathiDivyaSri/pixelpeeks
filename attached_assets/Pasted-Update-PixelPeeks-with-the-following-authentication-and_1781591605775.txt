@@ -1,0 +1,56 @@
+Update PixelPeeks with the following authentication and encryption changes only. Do not remove existing features.
+
+1. Signup Two-Factor Authentication
+
+* During account creation, user must enter email.
+* After signup form submission, send OTP to the user’s email.
+* User must verify OTP before account becomes active.
+* Use existing backend and database.
+* Use Nodemailer for email OTP.
+* Store OTP in hashed form, not plain text.
+* OTP expiry time: 5 minutes.
+* Add resend OTP option with cooldown timer.
+* Limit OTP attempts to prevent brute-force attacks.
+* Show clear OTP success/error messages.
+
+2. Login Two-Factor Authentication
+
+* Add optional/required 2FA during login.
+* After correct email and password, send OTP to registered email.
+* User must enter OTP to complete login.
+* Do not generate JWT/session until OTP is verified.
+* Handle wrong OTP, expired OTP, and resend OTP properly.
+
+3. Encryption Methods UI Fix
+
+* We added new encryption methods in code, but pages currently show only AES.
+* Update Encode, Decode, Settings, and any encryption-related UI pages to show all available encryption methods.
+
+Show these options:
+
+* AES-256-GCM
+* AES-256-CBC
+* ChaCha20-Poly1305
+* Triple DES
+
+4. Encryption Method Functionality
+
+* Allow user to select encryption method before encoding.
+* During decoding, detect or read the encryption method from metadata.
+* Use the correct method for decryption.
+* Show selected encryption method clearly in results.
+* If old files used only AES, maintain backward compatibility.
+* Show warning for weaker/legacy methods like Triple DES.
+
+5. Final Testing
+
+* Test signup with email OTP.
+* Test login with OTP.
+* Test resend OTP.
+* Test expired OTP.
+* Test all encryption methods on Encode page.
+* Test all encryption methods on Decode page.
+* Ensure dark mode text is readable on OTP and encryption pages.
+
+Goal:
+PixelPeeks should have proper email OTP-based 2FA during account creation and login, and all added encryption methods must appear and work correctly on the frontend pages, not only in the code.

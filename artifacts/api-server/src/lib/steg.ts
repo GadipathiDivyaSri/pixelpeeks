@@ -17,37 +17,166 @@ import { join } from "path";
 
 // ── Encryption ─────────────────────────────────────────────────────────────
 
+export type EncryptAlgorithm = "aes-256-gcm" | "aes-256-cbc" | "chacha20-poly1305" | "triple-des";
+
 const ITER = 200_000;
 const SALT_LEN = 16;
 const NONCE_LEN = 12;
 const TAG_LEN = 16;
+const DES3_KEY_LEN = 24;
+const DES3_IV_LEN = 8;
 
-export function encryptPayload(plain: Buffer, passphrase: string): Buffer {
+// 5-byte header: "PXCE" + 1-byte algorithm ID — prefixed on all new encrypted payloads
+const PXCE_MAGIC = Buffer.from("PXCE");
+const ALGO_IDS: Record<EncryptAlgorithm, number> = {
+  "aes-256-gcm":       0x01,
+  "aes-256-cbc":       0x02,
+  "chacha20-poly1305": 0x03,
+  "triple-des":        0x04,
+};
+const ID_TO_ALGO: Record<number, EncryptAlgorithm> = {
+  0x01: "aes-256-gcm",
+  0x02: "aes-256-cbc",
+  0x03: "chacha20-poly1305",
+  0x04: "triple-des",
+};
+
+// ── Per-algorithm encrypt/decrypt helpers ────────────────────────────────────
+
+function encryptAesGcm(plain: Buffer, passphrase: string): Buffer {
   const salt = randomBytes(SALT_LEN);
   const key = pbkdf2Sync(passphrase, salt, ITER, 32, "sha256");
   const nonce = randomBytes(NONCE_LEN);
   const cipher = createCipheriv("aes-256-gcm", key, nonce);
   const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
-  const tag = cipher.getAuthTag();
+  const tag = (cipher as ReturnType<typeof createCipheriv> & { getAuthTag(): Buffer }).getAuthTag();
   return Buffer.concat([salt, nonce, tag, encrypted]);
 }
 
-export function decryptPayload(data: Buffer, passphrase: string): Buffer {
-  if (data.length < SALT_LEN + NONCE_LEN + TAG_LEN + 1) {
-    throw new Error("Wrong key or no hidden message.");
-  }
+function decryptAesGcm(data: Buffer, passphrase: string): Buffer {
+  if (data.length < SALT_LEN + NONCE_LEN + TAG_LEN + 1) throw new Error("Wrong key or no hidden message.");
   const salt = data.subarray(0, SALT_LEN);
   const nonce = data.subarray(SALT_LEN, SALT_LEN + NONCE_LEN);
   const tag = data.subarray(SALT_LEN + NONCE_LEN, SALT_LEN + NONCE_LEN + TAG_LEN);
   const ciphertext = data.subarray(SALT_LEN + NONCE_LEN + TAG_LEN);
   const key = pbkdf2Sync(passphrase, salt, ITER, 32, "sha256");
   const decipher = createDecipheriv("aes-256-gcm", key, nonce);
-  decipher.setAuthTag(tag);
+  (decipher as ReturnType<typeof createDecipheriv> & { setAuthTag(t: Buffer): void }).setAuthTag(tag);
+  try { return Buffer.concat([decipher.update(ciphertext), decipher.final()]); }
+  catch { throw new Error("Wrong key or no hidden message."); }
+}
+
+function encryptAesCbc(plain: Buffer, passphrase: string): Buffer {
+  const salt = randomBytes(SALT_LEN);
+  const key = pbkdf2Sync(passphrase, salt, ITER, 32, "sha256");
+  const iv = randomBytes(16);
+  const cipher = createCipheriv("aes-256-cbc", key, iv);
+  const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
+  return Buffer.concat([salt, iv, encrypted]);
+}
+
+function decryptAesCbc(data: Buffer, passphrase: string): Buffer {
+  if (data.length < SALT_LEN + 16 + 1) throw new Error("Wrong key or no hidden message.");
+  const salt = data.subarray(0, SALT_LEN);
+  const iv = data.subarray(SALT_LEN, SALT_LEN + 16);
+  const ciphertext = data.subarray(SALT_LEN + 16);
+  const key = pbkdf2Sync(passphrase, salt, ITER, 32, "sha256");
+  const decipher = createDecipheriv("aes-256-cbc", key, iv);
+  try { return Buffer.concat([decipher.update(ciphertext), decipher.final()]); }
+  catch { throw new Error("Wrong key or no hidden message."); }
+}
+
+function encryptChaCha20(plain: Buffer, passphrase: string): Buffer {
+  const salt = randomBytes(SALT_LEN);
+  const key = pbkdf2Sync(passphrase, salt, ITER, 32, "sha256");
+  const nonce = randomBytes(NONCE_LEN);
+  const cipher = createCipheriv("chacha20-poly1305", key, nonce, { authTagLength: TAG_LEN } as object);
+  const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
+  const tag = (cipher as ReturnType<typeof createCipheriv> & { getAuthTag(): Buffer }).getAuthTag();
+  return Buffer.concat([salt, nonce, tag, encrypted]);
+}
+
+function decryptChaCha20(data: Buffer, passphrase: string): Buffer {
+  if (data.length < SALT_LEN + NONCE_LEN + TAG_LEN + 1) throw new Error("Wrong key or no hidden message.");
+  const salt = data.subarray(0, SALT_LEN);
+  const nonce = data.subarray(SALT_LEN, SALT_LEN + NONCE_LEN);
+  const tag = data.subarray(SALT_LEN + NONCE_LEN, SALT_LEN + NONCE_LEN + TAG_LEN);
+  const ciphertext = data.subarray(SALT_LEN + NONCE_LEN + TAG_LEN);
+  const key = pbkdf2Sync(passphrase, salt, ITER, 32, "sha256");
+  const decipher = createDecipheriv("chacha20-poly1305", key, nonce, { authTagLength: TAG_LEN } as object);
+  (decipher as ReturnType<typeof createDecipheriv> & { setAuthTag(t: Buffer): void }).setAuthTag(tag);
+  try { return Buffer.concat([decipher.update(ciphertext), decipher.final()]); }
+  catch { throw new Error("Wrong key or no hidden message."); }
+}
+
+function encryptTripleDes(plain: Buffer, passphrase: string): Buffer {
+  const salt = randomBytes(SALT_LEN);
+  const key = pbkdf2Sync(passphrase, salt, ITER, DES3_KEY_LEN, "sha256");
+  const iv = randomBytes(DES3_IV_LEN);
   try {
+    const cipher = createCipheriv("des-ede3-cbc", key, iv);
+    const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
+    return Buffer.concat([salt, iv, encrypted]);
+  } catch {
+    throw new Error("Triple DES is not available in this environment (requires legacy OpenSSL provider).");
+  }
+}
+
+function decryptTripleDes(data: Buffer, passphrase: string): Buffer {
+  if (data.length < SALT_LEN + DES3_IV_LEN + 1) throw new Error("Wrong key or no hidden message.");
+  const salt = data.subarray(0, SALT_LEN);
+  const iv = data.subarray(SALT_LEN, SALT_LEN + DES3_IV_LEN);
+  const ciphertext = data.subarray(SALT_LEN + DES3_IV_LEN);
+  const key = pbkdf2Sync(passphrase, salt, ITER, DES3_KEY_LEN, "sha256");
+  try {
+    const decipher = createDecipheriv("des-ede3-cbc", key, iv);
     return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
   } catch {
-    throw new Error("Wrong key or no hidden message.");
+    throw new Error("Wrong key or Triple DES not available in this environment.");
   }
+}
+
+// ── Public encrypt / decrypt (multi-algorithm with PXCE header) ───────────────
+
+/**
+ * Encrypt `plain` with the specified algorithm and passphrase.
+ * Output is prefixed with a 5-byte PXCE header (magic + algo ID) so that
+ * decryptPayload can auto-detect the algorithm.
+ */
+export function encryptPayload(plain: Buffer, passphrase: string, algo: EncryptAlgorithm = "aes-256-gcm"): Buffer {
+  let encrypted: Buffer;
+  switch (algo) {
+    case "aes-256-cbc":       encrypted = encryptAesCbc(plain, passphrase); break;
+    case "chacha20-poly1305": encrypted = encryptChaCha20(plain, passphrase); break;
+    case "triple-des":        encrypted = encryptTripleDes(plain, passphrase); break;
+    default:                  encrypted = encryptAesGcm(plain, passphrase); break;
+  }
+  const header = Buffer.alloc(5);
+  PXCE_MAGIC.copy(header, 0);
+  header[4] = ALGO_IDS[algo] ?? 0x01;
+  return Buffer.concat([header, encrypted]);
+}
+
+/**
+ * Decrypt `data` with the given passphrase.
+ * Auto-detects algorithm from the PXCE header; falls back to AES-256-GCM
+ * for files encrypted with older versions (backward compatible).
+ */
+export function decryptPayload(data: Buffer, passphrase: string): { plain: Buffer; algorithm: EncryptAlgorithm } {
+  if (data.length >= 5 && data.subarray(0, 4).equals(PXCE_MAGIC)) {
+    const algo = ID_TO_ALGO[data[4]] ?? "aes-256-gcm";
+    const cipher = data.subarray(5);
+    let plain: Buffer;
+    switch (algo) {
+      case "aes-256-cbc":       plain = decryptAesCbc(cipher, passphrase); break;
+      case "chacha20-poly1305": plain = decryptChaCha20(cipher, passphrase); break;
+      case "triple-des":        plain = decryptTripleDes(cipher, passphrase); break;
+      default:                  plain = decryptAesGcm(cipher, passphrase); break;
+    }
+    return { plain, algorithm: algo };
+  }
+  // Legacy format: no PXCE header → assume AES-256-GCM
+  return { plain: decryptAesGcm(data, passphrase), algorithm: "aes-256-gcm" };
 }
 
 // ── PXPK_V1 Signature ────────────────────────────────────────────────────────
