@@ -334,7 +334,7 @@ export default function Landing() {
         <section className="max-w-7xl mx-auto px-6 py-16">
           <div className="grid md:grid-cols-3 gap-4">
             {[
-              { emoji: "🔒", title: "AES-256 Encryption", desc: "PBKDF2 key derivation + GCM authentication. Bank-grade security on every secret." },
+              { emoji: "🔐", title: "4 Encryption Algorithms", desc: "Choose your cipher — PBKDF2-derived keys on every encode. AES-256-GCM (recommended) · AES-256-CBC · ChaCha20-Poly1305 · Triple DES (legacy)." },
               { emoji: "📦", title: "Secure Downloads", desc: "Files are processed in memory and returned as secure base64 data — never stored on disk." },
               { emoji: "🕵", title: "Steganalysis Engine", desc: "Shannon entropy, chi-square pairs test, LSB deviation, and block stdev analysis." },
             ].map((f) => (
