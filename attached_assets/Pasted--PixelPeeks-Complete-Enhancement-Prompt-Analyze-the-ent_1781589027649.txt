@@ -1,0 +1,211 @@
+# PixelPeeks Complete Enhancement Prompt
+
+Analyze the entire PixelPeeks codebase and improve the application without removing existing features.
+
+## Main Goal
+
+Make PixelPeeks a professional cybersecurity-grade steganography platform with strong decoding, secure encryption, OTP authentication, steganalysis, and polished UI.
+
+## 1. Decode Module — Highest Priority
+
+* Improve the Decode page UI and workflow.
+* Make decoding faster and more reliable.
+* Detect hidden data automatically where possible.
+* Show clear success and error messages.
+* Support password-protected decoding.
+* Add copy extracted text button.
+* Add download extracted message option.
+* Show file metadata and decoding result details.
+* Handle corrupted, unsupported, or empty files properly.
+
+## 2. Cross-App Decoding Compatibility
+
+* Improve support for images encoded by other steganography apps.
+* Detect common LSB-based image steganography.
+* Support PNG and BMP decoding techniques.
+* Add compatibility checker.
+* Show clear message if the file uses unsupported encoding.
+* Explain that JPEG decoding may fail because compression can destroy hidden data.
+
+## 3. Encryption & Security
+
+Use modern encryption.
+
+Default:
+
+* AES-256-GCM
+
+Password-Based Key Derivation:
+
+* Argon2 preferred
+* PBKDF2 fallback
+
+Requirements:
+
+* Never use raw password directly as encryption key.
+* Generate secure random salt.
+* Generate secure random IV.
+* Store only salt, IV, authentication tag, and encrypted payload.
+* Encrypt hidden message before embedding.
+* Detect wrong password properly.
+* Show clear decryption errors.
+* Keep backward compatibility with existing PixelPeeks encoded files if possible.
+
+Optional future encryption methods:
+
+* AES-256-CBC
+* ChaCha20-Poly1305
+* Triple DES only for educational/legacy support
+
+## 4. OTP & Two-Factor Authentication
+
+Do not use Supabase.
+
+Implement OTP using the existing backend.
+
+Use:
+
+* Nodemailer for sending email OTP
+* Existing database for storing OTP records
+* Existing authentication/JWT system
+* Existing user table
+
+OTP Requirements:
+
+* Email OTP verification during signup.
+* OTP verification for login 2FA.
+* OTP verification for forgot password.
+* Resend OTP button with cooldown timer.
+* OTP expiry time: 5 minutes.
+* Maximum OTP verification attempts: 5.
+* Maximum OTP requests: 3 per 5 minutes per user.
+* Maximum OTP requests: 10 per hour per user.
+* Store OTP in hashed form, not plain text.
+* Delete/invalidate OTP after successful verification.
+* Prevent brute-force OTP attempts.
+* Show clear OTP success/error messages.
+* Keep email credentials only in backend environment variables.
+* Do not expose email credentials in frontend.
+* Make OTP pages responsive.
+
+Use Gmail SMTP + Nodemailer for now.
+Later, allow migration to Resend, Brevo, SendGrid, or Twilio Verify if needed.
+
+## 5. Login & Signup Improvements
+
+* Improve login UI.
+* Improve signup UI.
+* Add show/hide password option.
+* Add password strength meter.
+* Add email validation.
+* Add better form validation.
+* Add forgot password flow.
+* Add secure logout.
+* Improve JWT/session handling.
+* Handle expired session properly.
+* Improve mobile responsiveness.
+
+## 6. Steganalysis / Pixel Analysis
+
+Improve Pixel Analysis feature.
+
+Add:
+
+* Hidden data probability score.
+* LSB distribution analysis.
+* Entropy analysis.
+* Pixel anomaly detection.
+* Suspicious pattern detection.
+* Metadata inspection.
+* Image comparison/difference view.
+* Clear analysis report.
+
+## 7. Dark Mode Fixes
+
+Fix all dark mode text color issues.
+
+Check:
+
+* Home page
+* Encode page
+* Decode page
+* Pixel Analysis page
+* Login page
+* Signup page
+* Dashboard
+* Settings
+* Buttons
+* Forms
+* Cards
+* Modals
+* Alerts
+* Navigation
+
+All text must be readable with proper contrast.
+
+## 8. File Preview & Processing
+
+* Add file preview before encode/decode.
+* Show file name, type, and size.
+* Add drag-and-drop upload.
+* Add progress bars.
+* Add loading indicators.
+* Show processing status clearly.
+
+## 9. Dashboard Improvements
+
+* Improve dashboard UI.
+* Add recent activity.
+* Add encode/decode history if storage is enabled.
+* Add user statistics.
+* Add quick action buttons.
+* Add security tips section.
+
+## 10. UI/UX Improvements
+
+* Make design modern and cybersecurity-focused.
+* Improve buttons, cards, spacing, typography, and animations.
+* Improve mobile, tablet, and desktop responsiveness.
+* Improve navigation between tools.
+* Make the app look professional and polished.
+
+## 11. Performance Optimization
+
+* Optimize encoding speed.
+* Optimize decoding speed.
+* Reduce unnecessary re-renders.
+* Improve large file handling.
+* Reduce loading delays.
+* Improve frontend and backend performance.
+
+## 12. Error Handling & Testing
+
+* Add user-friendly error messages.
+* Add recovery suggestions.
+* Add backend validation.
+* Add frontend validation.
+* Test encoding.
+* Test decoding.
+* Test encryption/decryption.
+* Test OTP flow.
+* Test login/signup.
+* Test forgot password.
+* Test dark mode.
+* Test mobile responsiveness.
+* Fix all bugs found.
+
+## Priority Order
+
+1. Decode Module Improvements
+2. Cross-App Decoding Compatibility
+3. AES-256-GCM + Argon2/PBKDF2 Encryption
+4. OTP + 2FA using Nodemailer
+5. Login/Signup Improvements
+6. Steganalysis / Pixel Analysis
+7. Dark Mode Fixes
+8. Dashboard Improvements
+9. UI/UX Improvements
+10. Performance Optimization
+11. Final Testing
+
+Final result should make PixelPeeks look and work like a complete professional cybersecurity steganography platform.
