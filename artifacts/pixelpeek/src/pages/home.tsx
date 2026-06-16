@@ -150,7 +150,7 @@ export default function Home() {
       </section>
 
       {/* Rainbow marquee strip */}
-      <div className="overflow-hidden rounded-2xl border-4 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A]">
+      <div className="overflow-hidden rounded-2xl border-4 border-border shadow-[4px_4px_0_0_hsl(var(--border))]">
         <motion.div
           animate={{ x: ["0%", "-50%"] }}
           transition={{ repeat: Infinity, duration: 18, ease: "linear" }}

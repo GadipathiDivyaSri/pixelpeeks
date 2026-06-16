@@ -90,9 +90,9 @@ export default function Decode() {
             key={tab.id}
             data-testid={`tab-${tab.id}`}
             onClick={() => { setActiveTab(tab.id); setFile(null); decodeFile.reset(); }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm text-white border-2 border-[#0F172A] ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm text-white border-2 border-border ${
               activeTab === tab.id
-                ? `${tab.color} shadow-[3px_3px_0_0_#0F172A]`
+                ? `${tab.color} shadow-[3px_3px_0_0_hsl(var(--border))]`
                 : `${tab.color} opacity-40 hover:opacity-70`
             }`}
           >
@@ -110,7 +110,7 @@ export default function Decode() {
           className={`border-4 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[200px] relative overflow-hidden ${
             isDragging
               ? "border-[#2563EB] bg-[#93C5FD] scale-[1.01]"
-              : file ? "border-[#0F172A] bg-[#BFDBFE]" : "border-[#2563EB] bg-[#BFDBFE] hover:bg-[#93C5FD]"
+              : file ? "border-border bg-[#BFDBFE] dark:bg-muted" : "border-[#2563EB] bg-[#BFDBFE] dark:bg-muted hover:bg-[#93C5FD]"
           }`}
         >
           <input
@@ -163,7 +163,7 @@ export default function Decode() {
           )}
         </div>
 
-        <div className="bg-[#BFDBFE] dark:bg-card border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] rounded-[2rem] p-6 md:p-8">
+        <div className="bg-[#BFDBFE] dark:bg-card border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))] rounded-[2rem] p-6 md:p-8">
           <div className="flex flex-col gap-2">
             <label className="font-black text-lg flex items-center gap-2 text-[#0F172A] dark:text-foreground">
               🔒 Passphrase <span className="text-[#0F172A]/50 dark:text-muted-foreground text-sm font-medium">(If the message was encrypted)</span>
@@ -176,7 +176,7 @@ export default function Decode() {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder="Enter decryption key..."
-                className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-white/80 dark:bg-background"
+                className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-white/80 dark:bg-background"
               />
               <button
                 type="button"
@@ -193,7 +193,7 @@ export default function Decode() {
           data-testid="button-submit-decode"
           type="submit"
           disabled={!file || decodeFile.isPending}
-          className="bg-[#2563EB] text-white text-2xl font-black py-5 rounded-2xl border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_#0F172A] transition-all flex justify-center items-center gap-3"
+          className="bg-[#2563EB] text-white text-2xl font-black py-5 rounded-2xl border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_hsl(var(--border))] transition-all flex justify-center items-center gap-3"
         >
           {decodeFile.isPending ? (
             <>

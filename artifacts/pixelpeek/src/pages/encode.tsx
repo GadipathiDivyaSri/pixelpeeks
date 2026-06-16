@@ -71,31 +71,12 @@ export default function Encode() {
       id: "audio" as const,
       label: "🎵 Audio",
       color: "bg-[#A855F7]",
-      formats: "WAV (PCM)",
-    },
-    {
-      id: "video" as const,
-      label: "🎥 Video",
-      color: "bg-[#F97316]",
-      formats: "MP4 · MOV · WEBM · AVI",
-    },
-
-    {
-      id: "image" as const,
-      label: "🖼 Image",
-      color: "bg-[hsl(var(--chart-1))]",
-      formats: "PNG · JPG · WEBP · BMP · GIF",
-    },
-    {
-      id: "audio" as const,
-      label: "🎵 Audio",
-      color: "bg-[hsl(var(--chart-3))]",
       formats: "WAV · MP3 · FLAC · OGG · M4A · AAC",
     },
     {
       id: "video" as const,
       label: "🎥 Video",
-      color: "bg-[hsl(var(--chart-4))]",
+      color: "bg-[#F97316]",
       formats: "MP4 · MOV · WEBM · AVI",
     },
   ];
@@ -148,9 +129,9 @@ export default function Encode() {
               setFile(null);
               encodeFile.reset();
             }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm text-white border-2 border-[#0F172A] ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm text-white border-2 border-border ${
               activeTab === tab.id
-                ? `${tab.color} shadow-[3px_3px_0_0_#0F172A]`
+                ? `${tab.color} shadow-[3px_3px_0_0_hsl(var(--border))]`
                 : `${tab.color} opacity-40 hover:opacity-70`
             }`}
           >
@@ -170,10 +151,10 @@ export default function Encode() {
           onClick={() => fileInputRef.current?.click()}
           className={`border-4 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[200px] ${
             isDragging
-              ? "border-[#F43F5E] bg-[#F9A8D4] scale-[1.01]"
+              ? "border-[#F43F5E] bg-[#F9A8D4] dark:bg-primary/20 scale-[1.01]"
               : file
-                ? "border-[#0F172A] bg-[#FBCFE8]"
-                : "border-[#F43F5E] bg-[#FBCFE8] hover:bg-[#F9A8D4]"
+                ? "border-border bg-[#FBCFE8] dark:bg-muted"
+                : "border-[#F43F5E] bg-[#FBCFE8] dark:bg-muted hover:bg-[#F9A8D4]"
           }`}
         >
           <input
@@ -240,7 +221,7 @@ export default function Encode() {
         </div>
 
 
-        <div className="bg-[#FBCFE8] dark:bg-card border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] rounded-[2rem] p-6 md:p-8 flex flex-col gap-6">
+        <div className="bg-[#FBCFE8] dark:bg-card border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))] rounded-[2rem] p-6 md:p-8 flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className="font-black text-lg flex items-center gap-2 text-[#0F172A] dark:text-foreground">
@@ -252,7 +233,7 @@ export default function Encode() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Whisper something only your friend can hear…"
-              className="w-full min-h-[140px] p-4 rounded-xl border-2 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all resize-none font-medium text-base outline-none bg-white/80 dark:bg-background"
+              className="w-full min-h-[140px] p-4 rounded-xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all resize-none font-medium text-base outline-none bg-white/80 dark:bg-background"
               required
             />
             <div className="flex flex-wrap gap-2">
@@ -266,7 +247,7 @@ export default function Encode() {
                   key={s.label}
                   type="button"
                   onClick={() => setMessage(s.label)}
-                  className={`text-xs font-bold px-3 py-1.5 ${s.bg} rounded-full border-2 border-[#0F172A] shadow-[2px_2px_0_0_#0F172A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all text-[#0F172A]`}
+                  className={`text-xs font-bold px-3 py-1.5 ${s.bg} rounded-full border-2 border-border shadow-[2px_2px_0_0_hsl(var(--border))] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all text-[#0F172A]`}
                 >
                   {s.label}
                 </button>
@@ -289,7 +270,7 @@ export default function Encode() {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder="Add extra encryption..."
-                className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-[#0F172A] shadow-[4px_4px_0_0_#0F172A] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-white/80 dark:bg-background"
+                className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-white/80 dark:bg-background"
               />
               <button
                 type="button"
@@ -318,7 +299,7 @@ export default function Encode() {
           disabled={
             !file || !message || encodeFile.isPending
           }
-          className="bg-[#F43F5E] text-white text-2xl font-black py-5 rounded-2xl border-4 border-[#0F172A] shadow-[8px_8px_0_0_#0F172A] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_#0F172A] transition-all flex justify-center items-center gap-3"
+          className="bg-[#F43F5E] text-white text-2xl font-black py-5 rounded-2xl border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_hsl(var(--border))] transition-all flex justify-center items-center gap-3"
         >
           {encodeFile.isPending ? (
             <>

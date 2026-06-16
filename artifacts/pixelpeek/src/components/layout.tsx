@@ -90,10 +90,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <div
                     data-testid={`nav-${item.label.toLowerCase()}`}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-full border-2 border-[#0F172A] font-bold cursor-pointer transition-all text-sm text-[#0F172A] ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-full border-2 border-border font-bold cursor-pointer transition-all text-sm text-foreground ${
                       isActive(item.href)
-                        ? `${item.color} shadow-[4px_4px_0_0_#0F172A] translate-x-0 translate-y-0`
-                        : `${item.color} opacity-50 shadow-[3px_3px_0_0_#0F172A] hover:opacity-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A]`
+                        ? `${item.color} shadow-[4px_4px_0_0_hsl(var(--border))] translate-x-0 translate-y-0`
+                        : `${item.color} opacity-50 shadow-[3px_3px_0_0_hsl(var(--border))] hover:opacity-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_hsl(var(--border))]`
                     }`}
                   >
                     <item.icon className="w-4 h-4 flex-shrink-0" />
@@ -105,15 +105,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
             <div className="flex flex-col gap-3 pt-4 border-t-2 border-border/30">
               {user && (
-                <div className="bg-[#D1FAE5] border-2 border-[#0F172A] shadow-[2px_2px_0_0_#0F172A] px-4 py-2.5 rounded-xl">
-                  <p className="font-black text-xs text-[#0F172A] truncate">{user.name}</p>
-                  <p className="font-mono text-[10px] text-[#0F172A]/60 truncate">{user.email}</p>
+                <div className="bg-[#D1FAE5] dark:bg-muted border-2 border-border shadow-[2px_2px_0_0_hsl(var(--border))] px-4 py-2.5 rounded-xl">
+                  <p className="font-black text-xs text-foreground truncate">{user.name}</p>
+                  <p className="font-mono text-[10px] text-foreground/60 truncate">{user.email}</p>
                 </div>
               )}
 
               <button
                 onClick={() => setDark(!dark)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-[#0F172A] bg-[#FEF9C3] text-[#0F172A] font-bold text-sm shadow-[3px_3px_0_0_#0F172A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A] transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-border bg-[#FEF9C3] dark:bg-muted text-foreground font-bold text-sm shadow-[3px_3px_0_0_hsl(var(--border))] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_hsl(var(--border))] transition-all"
               >
                 {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                 {dark ? "Light Mode" : "Dark Mode"}
@@ -122,7 +122,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <button
                 data-testid="button-logout"
                 onClick={() => { logout(); setSidebarOpen(false); }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-[#0F172A] bg-[#FB7185] text-white font-bold text-sm shadow-[3px_3px_0_0_#0F172A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_#0F172A] transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-border bg-[#FB7185] text-white font-bold text-sm shadow-[3px_3px_0_0_hsl(var(--border))] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_0_hsl(var(--border))] transition-all"
               >
                 <LogOut className="w-4 h-4" />
                 Logout
