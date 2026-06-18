@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import multer from "multer";
 import path from "path";
 import { db, eventsTable } from "@workspace/db";
-import { desc, sql, eq, and } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 import {
   GetStatsResponse,
   ListEventsResponse,
@@ -27,6 +27,11 @@ import {
   classifyAudioDetailed,
   classifyVideoDetailed,
 } from "../lib/steg";
+import {
+  crossAppDecodeImage,
+  crossAppDecodeAudio,
+  crossAppDecodeVideo,
+} from "../lib/steg-cross-app";
 
 const router: IRouter = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 500 * 1024 * 1024 } });
@@ -148,57 +153,99 @@ router.post("/decode", upload.single("file"), async (req, res): Promise<void> =>
   }
   const key = req.body.key as string | undefined;
   const carrier = detectCarrier(file.mimetype, file.originalname);
+  const fileExt = path.extname(file.originalname).toLowerCase() || ".wav";
+
+  // ── Step 1: PixelPeeks primary decode (length-prefixed LSB + PXPK signature) ─
+
+  let primaryPayload: Buffer | null = null;
+  try {
+    if (carrier === "image")      primaryPayload = await decodeImage(file.buffer);
+    else if (carrier === "audio") primaryPayload = decodeAudio(file.buffer, fileExt);
+    else                          primaryPayload = decodeVideo(file.buffer);
+  } catch { /* primary failed — fall through to cross-app */ }
+
+  if (primaryPayload !== null) {
+    // Primary decode succeeded
+    const unwrapped = tryUnwrapPxpkSignature(primaryPayload);
+    const innerPayload = unwrapped.valid ? unwrapped.payload : primaryPayload;
+    try {
+      let message: string;
+      let encrypted = false;
+      let algorithmUsed: string | null = null;
+
+      if (key && key.trim().length > 0) {
+        encrypted = true;
+        const { plain, algorithm } = decryptPayload(innerPayload, key.trim());
+        message = plain.toString("utf-8");
+        algorithmUsed = algorithm;
+      } else {
+        message = innerPayload.toString("utf-8");
+      }
+
+      if (!message || message.length === 0) {
+        throw new Error("No hidden message found (or wrong key).");
+      }
+
+      await db.insert(eventsTable).values({
+        operation: "decode", carrier, filename: file.originalname, verdict: null, failed: false,
+      });
+      res.json(DecodeFileResponse.parse({
+        message, carrier, encrypted, algorithmUsed, crossApp: false,
+      }));
+    } catch (decErr) {
+      // Decryption or utf-8 decode failed
+      await db.insert(eventsTable).values({
+        operation: "decode", carrier, filename: file.originalname, verdict: null, failed: true,
+      });
+      const msg = decErr instanceof Error ? decErr.message : "Decoding failed.";
+      res.status(400).json({ error: msg });
+    }
+    return;
+  }
+
+  // ── Step 2: Cross-app decode (generic multi-tool steganography) ────────────
 
   try {
-    const fileExt = path.extname(file.originalname).toLowerCase() || ".wav";
-    let rawPayload: Buffer;
-    if (carrier === "image") {
-      rawPayload = await decodeImage(file.buffer);
-    } else if (carrier === "audio") {
-      rawPayload = decodeAudio(file.buffer, fileExt);
+    const crossResult =
+      carrier === "image" ? await crossAppDecodeImage(file.buffer) :
+      carrier === "audio" ? crossAppDecodeAudio(file.buffer) :
+                            crossAppDecodeVideo(file.buffer);
+
+    const best = crossResult.candidates[0];
+
+    if (best && best.confidence >= 50) {
+      await db.insert(eventsTable).values({
+        operation: "decode", carrier, filename: file.originalname, verdict: null, failed: false,
+      });
+      res.json(DecodeFileResponse.parse({
+        message:       best.content,
+        carrier,
+        encrypted:     false,
+        algorithmUsed: null,
+        crossApp:      true,
+        confidence:    best.confidence,
+        method:        best.method,
+      }));
     } else {
-      rawPayload = decodeVideo(file.buffer);
+      await db.insert(eventsTable).values({
+        operation: "decode", carrier, filename: file.originalname, verdict: null, failed: true,
+      });
+      res.status(400).json({
+        error: "No readable hidden message found.",
+        crossAppFindings: {
+          candidates:          crossResult.candidates,
+          pngChunks:           crossResult.pngChunks ?? [],
+          appendedData:        crossResult.appendedData ?? null,
+          metadata:            crossResult.metadata ?? [],
+          totalMethodsTried:   crossResult.totalMethodsTried,
+        },
+      });
     }
-
-    const unwrapped = tryUnwrapPxpkSignature(rawPayload);
-    const innerPayload = unwrapped.valid ? unwrapped.payload : rawPayload;
-
-    let message: string;
-    let encrypted = false;
-    let algorithmUsed: string | null = null;
-
-    if (key && key.trim().length > 0) {
-      encrypted = true;
-      const { plain, algorithm } = decryptPayload(innerPayload, key.trim());
-      message = plain.toString("utf-8");
-      algorithmUsed = algorithm;
-    } else {
-      message = innerPayload.toString("utf-8");
-    }
-
-    if (!message || message.length === 0) {
-      throw new Error("No hidden message found (or wrong key).");
-    }
-
+  } catch {
     await db.insert(eventsTable).values({
-      operation: "decode",
-      carrier,
-      filename: file.originalname,
-      verdict: null,
-      failed: false,
+      operation: "decode", carrier, filename: file.originalname, verdict: null, failed: true,
     });
-
-    res.json(DecodeFileResponse.parse({ message, carrier, encrypted, algorithmUsed }));
-  } catch (err: unknown) {
-    await db.insert(eventsTable).values({
-      operation: "decode",
-      carrier,
-      filename: file.originalname,
-      verdict: null,
-      failed: true,
-    });
-    const msg = err instanceof Error ? err.message : "Decoding failed.";
-    res.status(400).json({ error: msg });
+    res.status(400).json({ error: "No hidden message found. This file may not contain steganographic data." });
   }
 });
 

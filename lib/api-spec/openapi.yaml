@@ -511,6 +511,17 @@ components:
           type: boolean
         algorithmUsed:
           type: ["string", "null"]
+        crossApp:
+          type: boolean
+          description: true when cross-application decoding was used
+        confidence:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Confidence score 0-100 (cross-app mode only)
+        method:
+          type: string
+          description: Decoding method used (cross-app mode only)
       required: [message, carrier, encrypted]
 
     DetectInput:

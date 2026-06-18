@@ -13,20 +13,29 @@ import {
   X,
   Eye,
   EyeOff,
+  ShieldCheck,
 } from "lucide-react";
 import { useEncodeFile } from "@workspace/api-client-react";
 import { Confetti } from "@/components/confetti";
 
+type Algorithm = "none" | "aes-256-gcm" | "aes-256-cbc" | "chacha20-poly1305" | "triple-des";
+
+const ALGO_OPTIONS: Array<{ id: Algorithm; label: string; badge?: string; danger?: boolean; description: string }> = [
+  { id: "none",              label: "🔓 None",          description: "No encryption" },
+  { id: "aes-256-gcm",       label: "🔐 AES-256-GCM",   badge: "⭐",    description: "Recommended — authenticated" },
+  { id: "aes-256-cbc",       label: "🔒 AES-256-CBC",                   description: "Widely compatible" },
+  { id: "chacha20-poly1305", label: "⚡ ChaCha20",                      description: "Fast, modern stream cipher" },
+  { id: "triple-des",        label: "⚠️ Triple DES",     danger: true,  description: "Legacy only" },
+];
 
 export default function Encode() {
-  const [activeTab, setActiveTab] = useState<"image" | "audio" | "video">(
-    "image",
-  );
+  const [activeTab, setActiveTab] = useState<"image" | "audio" | "video">("image");
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
   const [passphrase, setPassphrase] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [algorithm, setAlgorithm] = useState<Algorithm>("aes-256-gcm");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const encodeFile = useEncodeFile();
@@ -50,51 +59,38 @@ export default function Encode() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!file || !message) return;
+    if (algorithm !== "none" && !passphrase.trim()) return;
 
     encodeFile.mutate({
       data: {
         file,
         message,
-        ...(passphrase ? { key: passphrase } : {}),
+        ...(algorithm !== "none" && passphrase.trim()
+          ? { key: passphrase.trim(), algorithm }
+          : {}),
       } as any,
     });
   };
 
   const tabs = [
-    {
-      id: "image" as const,
-      label: "🖼 Image",
-      color: "bg-[#F43F5E]",
-      formats: "PNG · JPG · WEBP · BMP · GIF",
-    },
-    {
-      id: "audio" as const,
-      label: "🎵 Audio",
-      color: "bg-[#A855F7]",
-      formats: "WAV · MP3 · FLAC · OGG · M4A · AAC",
-    },
-    {
-      id: "video" as const,
-      label: "🎥 Video",
-      color: "bg-[#F97316]",
-      formats: "MP4 · MOV · WEBM · AVI",
-    },
+    { id: "image" as const, label: "🖼 Image",  color: "bg-[#F43F5E]", formats: "PNG · JPG · WEBP · BMP · GIF" },
+    { id: "audio" as const, label: "🎵 Audio",  color: "bg-[#A855F7]", formats: "WAV · MP3 · FLAC · OGG · M4A · AAC" },
+    { id: "video" as const, label: "🎥 Video",  color: "bg-[#F97316]", formats: "MP4 · MOV · WEBM · AVI" },
   ];
 
   const activeTabData = tabs.find((t) => t.id === activeTab)!;
 
   const getErrorMessage = (error: unknown): string => {
     if (!error) return "Failed to encode file. Please try again.";
-    const e = error as {
-      response?: { data?: { error?: string } };
-      message?: string;
-    };
-    return (
-      e?.response?.data?.error ??
-      e?.message ??
-      "Failed to encode file. Please try again."
-    );
+    const e = error as { response?: { data?: { error?: string } }; message?: string };
+    return e?.response?.data?.error ?? e?.message ?? "Failed to encode file. Please try again.";
   };
+
+  const needsPassphrase = algorithm !== "none";
+
+  const algoLabel = ALGO_OPTIONS.find(a => a.id === encodeFile.data?.algorithmUsed)?.label
+    ?? ALGO_OPTIONS.find(a => a.id === algorithm)?.label
+    ?? "None";
 
   return (
     <div className="flex flex-col gap-8 max-w-3xl mx-auto pb-24">
@@ -106,7 +102,7 @@ export default function Encode() {
           className="inline-flex items-center gap-2 bg-[hsl(var(--chart-1))/20] border-2 border-border rounded-full px-4 py-1.5 mb-4 font-mono text-xs font-bold uppercase tracking-wider"
         >
           <Lock className="w-3.5 h-3.5 text-primary" />
-          LSB Steganography + AES-256
+          LSB Steganography + Multi-Algorithm Encryption
         </motion.div>
         <h1
           className="text-4xl md:text-5xl font-black mb-3"
@@ -142,10 +138,7 @@ export default function Encode() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
@@ -161,43 +154,23 @@ export default function Encode() {
             type="file"
             ref={fileInputRef}
             className="hidden"
-            accept={
-              activeTab === "image"
-                ? "image/*"
-                : activeTab === "audio"
-                  ? "audio/*"
-                  : "video/*"
-            }
+            accept={activeTab === "image" ? "image/*" : activeTab === "audio" ? "audio/*" : "video/*"}
             onChange={handleFileChange}
           />
           {file ? (
             <div className="flex flex-col items-center gap-3">
-              <div
-                className={`p-4 rounded-2xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] ${activeTabData.color}`}
-              >
-                {activeTab === "image" && (
-                  <ImageIcon className="w-8 h-8 text-foreground" />
-                )}
-                {activeTab === "audio" && (
-                  <Music className="w-8 h-8 text-foreground" />
-                )}
-                {activeTab === "video" && (
-                  <Video className="w-8 h-8 text-foreground" />
-                )}
+              <div className={`p-4 rounded-2xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] ${activeTabData.color}`}>
+                {activeTab === "image" && <ImageIcon className="w-8 h-8 text-white" />}
+                {activeTab === "audio" && <Music className="w-8 h-8 text-white" />}
+                {activeTab === "video" && <Video className="w-8 h-8 text-white" />}
               </div>
-              <div className="font-bold text-lg text-foreground">
-                {file.name}
-              </div>
+              <div className="font-bold text-lg text-foreground">{file.name}</div>
               <div className="text-sm font-mono text-muted-foreground">
                 {(file.size / 1024 / 1024).toFixed(2)} MB
               </div>
               <button
                 type="button"
-                onClick={(ev) => {
-                  ev.stopPropagation();
-                  setFile(null);
-                  encodeFile.reset();
-                }}
+                onClick={(ev) => { ev.stopPropagation(); setFile(null); encodeFile.reset(); }}
                 className="flex items-center gap-1 text-xs font-bold text-muted-foreground hover:text-destructive transition-colors"
               >
                 <X className="w-3 h-3" /> Remove file
@@ -211,17 +184,15 @@ export default function Encode() {
               >
                 <UploadCloud className="w-12 h-12" />
               </motion.div>
-              <div className="font-bold text-xl text-foreground">
-                Drop your {activeTab} file here
-              </div>
+              <div className="font-bold text-xl text-foreground">Drop your {activeTab} file here</div>
               <div className="font-medium text-sm">{activeTabData.formats}</div>
               <div className="text-xs">or click to browse</div>
             </div>
           )}
         </div>
 
-
         <div className="bg-[#FBCFE8] dark:bg-card border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))] rounded-[2rem] p-6 md:p-8 flex flex-col gap-6">
+          {/* Message */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className="font-black text-lg flex items-center gap-2 text-[#0F172A] dark:text-foreground">
@@ -255,50 +226,97 @@ export default function Encode() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
+          {/* Encryption algorithm selector */}
+          <div className="flex flex-col gap-3">
             <label className="font-black text-lg flex items-center gap-2 text-[#0F172A] dark:text-foreground">
-              🔒 Passphrase{" "}
-              <span className="text-[#0F172A]/50 dark:text-muted-foreground text-sm font-medium">
-                (Optional — AES-256)
-              </span>
+              <ShieldCheck className="w-5 h-5" />
+              Encryption Algorithm
             </label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0F172A]/40 dark:text-muted-foreground" />
-              <input
-                data-testid="input-passphrase"
-                type={showPass ? "text" : "password"}
-                value={passphrase}
-                onChange={(e) => setPassphrase(e.target.value)}
-                placeholder="Add extra encryption..."
-                className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-white/80 dark:bg-background"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPass(!showPass)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0F172A]/40 hover:text-[#0F172A] transition-colors dark:text-muted-foreground dark:hover:text-foreground"
-              >
-                {showPass ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-              </button>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {ALGO_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    setAlgorithm(opt.id);
+                    if (opt.id === "none") setPassphrase("");
+                  }}
+                  className={`text-left px-3 py-2.5 rounded-xl border-2 transition-all ${
+                    algorithm === opt.id
+                      ? opt.danger
+                        ? "border-amber-500 bg-amber-50 dark:bg-amber-900/30 shadow-[3px_3px_0_0_rgba(245,158,11,0.5)]"
+                        : "border-[#F43F5E] bg-white dark:bg-card shadow-[3px_3px_0_0_hsl(var(--border))]"
+                      : "border-border bg-white/60 dark:bg-muted/40 hover:bg-white dark:hover:bg-muted/60"
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-black text-[#0F172A] dark:text-foreground">{opt.label}</span>
+                    {opt.badge && algorithm === opt.id && <span className="text-xs">{opt.badge}</span>}
+                  </div>
+                  <div className={`text-xs font-medium mt-0.5 ${opt.danger ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"}`}>
+                    {opt.description}
+                  </div>
+                </button>
+              ))}
             </div>
-            {passphrase && (
-              <div className="flex items-center gap-2 text-xs font-bold text-[#16A34A]">
-                <CheckCircle className="w-3.5 h-3.5" />
-                AES-256-GCM encryption will be applied
-              </div>
+            {algorithm === "triple-des" && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-xl p-3"
+              >
+                ⚠️ Triple DES is a legacy cipher provided for compatibility only. Use AES-256-GCM for new files.
+              </motion.div>
             )}
           </div>
+
+          {/* Passphrase — shown only when encryption is selected */}
+          <AnimatePresence>
+            {needsPassphrase && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex flex-col gap-2 overflow-hidden"
+              >
+                <label className="font-black text-lg flex items-center gap-2 text-[#0F172A] dark:text-foreground">
+                  🔑 Passphrase{" "}
+                  <span className="text-[#FB7185] text-sm font-bold">*</span>
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0F172A]/40 dark:text-muted-foreground" />
+                  <input
+                    data-testid="input-passphrase"
+                    type={showPass ? "text" : "password"}
+                    value={passphrase}
+                    onChange={(e) => setPassphrase(e.target.value)}
+                    placeholder="Secret passphrase for decryption…"
+                    required={needsPassphrase}
+                    className="w-full p-4 pl-12 pr-12 rounded-xl border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] focus:shadow-none focus:translate-x-1 focus:translate-y-1 transition-all font-medium text-base outline-none bg-white/80 dark:bg-background"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0F172A]/40 hover:text-[#0F172A] transition-colors dark:text-muted-foreground dark:hover:text-foreground"
+                  >
+                    {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {passphrase && (
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#16A34A]">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    {ALGO_OPTIONS.find(a => a.id === algorithm)?.label ?? algorithm} encryption will be applied
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <button
           data-testid="button-submit-encode"
           type="submit"
-          disabled={
-            !file || !message || encodeFile.isPending
-          }
+          disabled={!file || !message || encodeFile.isPending || (needsPassphrase && !passphrase.trim())}
           className="bg-[#F43F5E] text-white text-2xl font-black py-5 rounded-2xl border-4 border-border shadow-[8px_8px_0_0_hsl(var(--border))] hover:translate-x-2 hover:translate-y-2 hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[8px_8px_0_0_hsl(var(--border))] transition-all flex justify-center items-center gap-3"
         >
           {encodeFile.isPending ? (
@@ -324,14 +342,11 @@ export default function Encode() {
           >
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div>
-              <div className="font-black mb-1">Peek In failed</div>
-              <div className="font-medium text-sm">
-                {getErrorMessage(encodeFile.error)}
-              </div>
+              <div className="font-black mb-1">Encoding failed</div>
+              <div className="font-medium text-sm">{getErrorMessage(encodeFile.error)}</div>
               {activeTab === "audio" && (
                 <div className="mt-2 text-xs font-medium opacity-80">
-                  💡 Tip: Supported audio formats: WAV, MP3, FLAC, OGG, M4A,
-                  AAC. Output will be WAV.
+                  💡 Supported formats: WAV, MP3, FLAC, OGG, M4A, AAC. Output will be WAV.
                 </div>
               )}
             </div>
@@ -355,38 +370,22 @@ export default function Encode() {
               🎉
             </motion.div>
             <div>
-              <h3
-                className="text-3xl font-black mb-1"
-                style={{ fontFamily: "Outfit, sans-serif" }}
-              >
+              <h3 className="text-3xl font-black mb-1" style={{ fontFamily: "Outfit, sans-serif" }}>
                 Secret Successfully Hidden!
               </h3>
               <p className="text-lg font-medium text-muted-foreground">
                 Your file is ready — it looks completely normal.
               </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
               {[
                 { label: "File type", val: encodeFile.data.carrier },
-                {
-                  label: "Bytes used",
-                  val: `${(encodeFile.data.bytesUsed / 1024).toFixed(2)} KB`,
-                },
-                {
-                  label: "Time",
-                  val: `${encodeFile.data.timeSec.toFixed(2)}s`,
-                },
-                ...(passphrase
-                  ? [{ label: "Encryption", val: "AES-256-GCM" }]
-                  : []),
+                { label: "Bytes used", val: `${(encodeFile.data.bytesUsed / 1024).toFixed(2)} KB` },
+                { label: "Time", val: `${encodeFile.data.timeSec.toFixed(2)}s` },
+                { label: "Encryption", val: encodeFile.data.algorithmUsed ? algoLabel.replace(/^[^\s]+\s/, "") : "None" },
               ].map((item) => (
-                <div
-                  key={item.label}
-                  className="bg-card p-3 rounded-xl border-2 border-border text-sm"
-                >
-                  <div className="text-muted-foreground font-medium text-xs uppercase tracking-wider">
-                    {item.label}
-                  </div>
+                <div key={item.label} className="bg-card p-3 rounded-xl border-2 border-border text-sm">
+                  <div className="text-muted-foreground font-medium text-xs uppercase tracking-wider">{item.label}</div>
                   <div className="font-black font-mono">{item.val}</div>
                 </div>
               ))}

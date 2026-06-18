@@ -158,6 +158,16 @@ export interface DecodeResult {
   encrypted: boolean;
   /** @nullable */
   algorithmUsed?: string | null;
+  /** true when cross-application decoding was used */
+  crossApp?: boolean;
+  /**
+     * Confidence score 0-100 (cross-app mode only)
+     * @minimum 0
+     * @maximum 100
+     */
+  confidence?: number;
+  /** Decoding method used (cross-app mode only) */
+  method?: string;
 }
 
 export interface DetectInput {

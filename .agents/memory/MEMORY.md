@@ -1,2 +1,4 @@
 - [OTP 2FA login flow](otp-2fa-flow.md) — login returns requiresOtp+pendingToken; useEffect with conditional cleanup needs early-return pattern to satisfy noImplicitReturns
 - [Babel mixed operators](babel-mixed-operators.md) — mixing || and ?? in a single expression requires parens around the ?? operand or Babel parser throws
+- [Cross-app steg decode](cross-app-steg.md) — 88 LSB methods + PNG chunks + appended data; confidence ≥ 50 → 200, else 400 with crossAppFindings object
+- [Encryption algorithm selector](encrypt-algorithms.md) — 4 ciphers (aes-256-gcm★, aes-256-cbc, chacha20-poly1305, triple-des); PXCE 5-byte header embeds algo_id; "none" skips passphrase field

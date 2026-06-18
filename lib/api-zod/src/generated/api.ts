@@ -161,11 +161,19 @@ export const DecodeFileBody = zod.object({
   "key": zod.string().optional()
 })
 
+export const decodeFileResponseConfidenceMin = 0;
+export const decodeFileResponseConfidenceMax = 100;
+
+
+
 export const DecodeFileResponse = zod.object({
   "message": zod.string(),
   "carrier": zod.enum(['image', 'audio', 'video']),
   "encrypted": zod.boolean(),
-  "algorithmUsed": zod.string().nullish()
+  "algorithmUsed": zod.string().nullish(),
+  "crossApp": zod.boolean().optional().describe('true when cross-application decoding was used'),
+  "confidence": zod.number().min(decodeFileResponseConfidenceMin).max(decodeFileResponseConfidenceMax).optional().describe('Confidence score 0-100 (cross-app mode only)'),
+  "method": zod.string().optional().describe('Decoding method used (cross-app mode only)')
 })
 
 
