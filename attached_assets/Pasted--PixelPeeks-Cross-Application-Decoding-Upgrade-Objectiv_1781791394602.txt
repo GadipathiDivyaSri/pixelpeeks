@@ -1,0 +1,416 @@
+# PixelPeeks Cross-Application Decoding Upgrade
+
+## Objective
+
+Currently PixelPeeks can only decode images, audio files, and video files that were encoded using PixelPeeks itself.
+
+I want PixelPeeks to become a cross-application decoding platform capable of attempting to decode files created by other steganography applications and tools whenever technically possible.
+
+PixelPeeks should not depend only on its own metadata or encoding format.
+
+---
+
+# Cross-Application Decoding Requirement
+
+When a user uploads a file for decoding:
+
+### Step 1
+
+Detect file type:
+
+* Image
+* Audio
+* Video
+
+### Step 2
+
+Check whether the file was encoded using PixelPeeks.
+
+If PixelPeeks metadata/signature exists:
+
+* Use PixelPeeks decoding workflow.
+
+### Step 3
+
+If PixelPeeks metadata is NOT found:
+
+Automatically switch to Generic Cross-App Decode Mode.
+
+PixelPeeks should attempt multiple decoding methods automatically.
+
+---
+
+# Required Image Decoding Technologies
+
+## 1. LSB (Least Significant Bit) Extraction
+
+Implement:
+
+* 1-bit LSB extraction
+* 2-bit LSB extraction
+* 3-bit LSB extraction
+* 4-bit LSB extraction
+
+Support:
+
+* PNG
+* BMP
+
+Extract from:
+
+* Red channel
+* Green channel
+* Blue channel
+* Alpha channel
+* RGB combined
+* RGBA combined
+
+Purpose:
+
+Many steganography tools use LSB embedding.
+
+---
+
+## 2. Channel-Based Analysis
+
+Try:
+
+* RGB order
+* BGR order
+* RGBA order
+* ARGB order
+
+Purpose:
+
+Different applications store data in different channel sequences.
+
+---
+
+## 3. PNG Chunk Analysis
+
+Implement:
+
+* PNG chunk parser
+* Custom chunk detection
+* Hidden chunk extraction
+* Text chunk extraction
+* Suspicious chunk detection
+
+Purpose:
+
+Some applications hide payloads in PNG chunks.
+
+---
+
+## 4. Metadata Extraction
+
+Implement:
+
+* EXIF extraction
+* PNG metadata extraction
+* Hidden comments extraction
+* Metadata anomaly detection
+
+Purpose:
+
+Some tools hide data inside metadata fields.
+
+---
+
+## 5. Appended Data Detection
+
+Implement:
+
+* EOF scanning
+* Appended payload detection
+
+Detect:
+
+* ZIP
+* PDF
+* TXT
+* Binary payloads
+
+Purpose:
+
+Some applications append files after image end markers.
+
+---
+
+# Required Audio Decoding Technologies
+
+## 1. WAV LSB Extraction
+
+Implement:
+
+* PCM sample extraction
+* 1-bit LSB extraction
+* 2-bit LSB extraction
+* 3-bit LSB extraction
+* 4-bit LSB extraction
+
+Support:
+
+* WAV
+
+Purpose:
+
+Many audio steganography tools use PCM LSB embedding.
+
+---
+
+## 2. Audio Channel Extraction
+
+Try:
+
+* Left channel
+* Right channel
+* Stereo combined
+
+Purpose:
+
+Hidden data may exist only in one channel.
+
+---
+
+## 3. Audio Metadata Analysis
+
+Implement:
+
+* ID3 tag extraction
+* WAV INFO extraction
+* Hidden metadata detection
+
+Purpose:
+
+Some applications store hidden data in metadata.
+
+---
+
+## 4. Spectral Analysis
+
+Implement:
+
+* FFT analysis
+* Spectrogram analysis
+* Frequency anomaly detection
+
+Purpose:
+
+Detect hidden frequency-based payloads.
+
+---
+
+# Required Video Decoding Technologies
+
+## 1. Frame-Based Extraction
+
+Implement:
+
+* Frame extraction
+* Keyframe extraction
+* Frame-by-frame analysis
+
+Apply image decoding techniques to extracted frames.
+
+Purpose:
+
+Many video steganography methods hide data inside frames.
+
+---
+
+## 2. Frame Difference Analysis
+
+Implement:
+
+* Pixel difference analysis
+* Suspicious frame detection
+* Noise pattern detection
+
+Purpose:
+
+Detect manipulated frames.
+
+---
+
+## 3. Video Metadata Extraction
+
+Implement:
+
+* MP4 metadata extraction
+* AVI metadata extraction
+* MKV metadata extraction
+
+Purpose:
+
+Detect hidden content stored in metadata.
+
+---
+
+## 4. Appended Data Detection
+
+Implement:
+
+* EOF analysis
+* Appended file detection
+
+Purpose:
+
+Detect files attached after video content.
+
+---
+
+# Required Steganalysis Technologies
+
+These should run automatically even if decoding fails.
+
+## Entropy Analysis
+
+Purpose:
+
+Detect encrypted or suspicious hidden content.
+
+Generate:
+
+* Entropy score
+* Suspiciousness score
+
+---
+
+## Chi-Square Analysis
+
+Purpose:
+
+Detect LSB statistical anomalies.
+
+Generate:
+
+* Hidden data probability
+
+---
+
+## RS Analysis
+
+Purpose:
+
+Detect LSB replacement patterns.
+
+Generate:
+
+* Confidence score
+
+---
+
+## Histogram Analysis
+
+Purpose:
+
+Detect hidden-data distribution anomalies.
+
+---
+
+## Noise Pattern Analysis
+
+Purpose:
+
+Detect manipulated image/audio/video regions.
+
+---
+
+# AI-Assisted Detection
+
+Use AI only for:
+
+* Suspicious region detection
+* Pattern recognition
+* Hidden content probability estimation
+
+Do NOT rely on AI alone for extraction.
+
+Actual decoding must use real steganography algorithms.
+
+---
+
+# Target Compatibility
+
+Attempt compatibility with:
+
+* OpenStego
+* Steghide
+* SilentEye
+* Xiao Steganography
+* OpenPuff
+* QuickStego
+* DeepSound
+* StegSolve-generated files
+* Common LSB-based steganography tools
+
+Important:
+
+Do not claim guaranteed decoding.
+
+Different tools use:
+
+* Different encryption methods
+* Different passwords
+* Different embedding algorithms
+* Different compression techniques
+* Proprietary formats
+
+If direct decoding is impossible:
+
+Show:
+
+* Hidden content probability
+* Steganalysis findings
+* Metadata findings
+* Possible reason for failure
+
+---
+
+# Decode Modes
+
+Add:
+
+### Auto Decode Mode
+
+Automatically runs all supported techniques.
+
+### Generic Cross-App Decode Mode
+
+Attempts decoding using common steganography techniques used by external applications.
+
+### Advanced Decode Mode
+
+Allows manual selection of:
+
+* Bit depth
+* Channel
+* Frame interval
+* Metadata scan
+* Chunk scan
+* Appended data scan
+
+---
+
+# Result Screen
+
+Display:
+
+* Decoded content (if found)
+* Extracted file (if found)
+* Confidence score
+* Detection method used
+* Hidden-data probability
+* Metadata findings
+* Steganalysis report
+* Compatibility notes
+* Failure reasons
+
+---
+
+# Final Goal
+
+PixelPeeks should not be limited to decoding only PixelPeeks-generated files.
+
+It should become a powerful cross-application decoding and steganalysis platform capable of analyzing and attempting to decode images, audio, and video files created by many different steganography tools using industry-standard decoding and detection techniques.

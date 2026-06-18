@@ -1,0 +1,423 @@
+# PixelPeeks Complete Upgrade & Security Enhancement Request
+
+Analyze the entire PixelPeeks codebase and implement all the following changes while preserving existing functionality.
+
+## Critical Requirement
+
+Before implementing new features, fix the account creation/signup functionality completely. Users should be able to create accounts successfully and data should be stored properly in the database.
+
+---
+
+# 1. Fix Signup Functionality
+
+Current Issue:
+
+* Account creation is not working properly.
+
+Requirements:
+
+* Fix signup flow.
+* Validate all fields.
+* Ensure user records are stored correctly in database.
+* Check duplicate emails.
+* Show meaningful error messages.
+* Show meaningful success messages.
+* Verify frontend-backend communication.
+* Verify database insertion.
+* Test signup end-to-end.
+
+---
+
+# 2. Email OTP Verification During Signup
+
+After signup:
+
+1. User enters:
+
+   * Name
+   * Email
+   * Password
+
+2. User account is created as:
+
+   * Pending
+   * Unverified
+
+3. Generate secure OTP.
+
+4. Send OTP to email using Nodemailer.
+
+5. User enters OTP.
+
+6. Account becomes verified.
+
+7. User can login.
+
+Important:
+
+OTP MUST ONLY BE SENT TO EMAIL.
+
+OTP MUST NEVER APPEAR:
+
+* On website
+* In frontend UI
+* Browser console
+* API responses
+* Network tab
+* Logs
+* Toast messages
+* Alerts
+
+Only show:
+
+* OTP input field
+* OTP sent message
+* Resend OTP button
+
+Requirements:
+
+* OTP expires in 5 minutes.
+* OTP stored hashed.
+* Limit OTP attempts.
+* Resend OTP cooldown.
+* One-time usage only.
+
+---
+
+# 3. Two-Factor Authentication (2FA)
+
+After successful password verification:
+
+1. Send OTP to registered email.
+2. User enters OTP.
+3. Verify OTP.
+4. Create session/JWT.
+5. Complete login.
+
+Requirements:
+
+* Login must not complete before OTP verification.
+* Handle:
+
+  * Expired OTP
+  * Invalid OTP
+  * Reused OTP
+
+---
+
+# 4. Forgot Password
+
+Flow:
+
+1. User enters registered email.
+2. Send OTP.
+3. Verify OTP.
+4. Allow password reset.
+5. Save securely.
+
+Requirements:
+
+* Password strength validation.
+* Confirm password validation.
+* OTP expiry.
+* Resend OTP support.
+
+---
+
+# 5. Multi-Encryption Architecture
+
+IMPORTANT:
+
+Previously PixelPeeks only supported AES encryption.
+
+Frontend currently behaves as if AES is the only encryption method.
+
+Now multiple encryption methods have been added and ALL must be integrated into the frontend and backend workflow.
+
+Supported Methods:
+
+1. AES-256-GCM (Recommended Default)
+2. AES-256-CBC
+3. ChaCha20-Poly1305
+4. Triple DES (Legacy)
+
+Frontend Requirements:
+
+* Add encryption selector.
+
+* Display selected method.
+
+* Show encryption method in:
+
+  * Encode results
+  * Decode results
+  * File metadata
+  * History logs
+  * Dashboard
+
+* Mark:
+
+  * AES-256-GCM as Recommended
+  * Triple DES as Legacy
+
+* Remove AES-only UI assumptions.
+
+---
+
+# 6. EXACT ENCRYPTION WORKFLOW
+
+When Encoding:
+
+Step 1:
+User uploads image.
+
+Step 2:
+User enters secret message.
+
+Step 3:
+User selects encryption method.
+
+Step 4:
+User enters encryption password.
+
+Step 5:
+Password must NEVER be used directly.
+
+Generate:
+
+* Salt
+* IV/Nonce
+
+Use:
+
+* Argon2 (preferred)
+  OR
+* PBKDF2
+
+to derive encryption key.
+
+Step 6:
+Encrypt message using selected encryption algorithm.
+
+Step 7:
+Store encryption metadata:
+
+* Encryption Method
+* Salt
+* IV/Nonce
+* Authentication Tag (if required)
+
+Step 8:
+Embed encrypted ciphertext into image.
+
+Step 9:
+Generate encoded image.
+
+Result:
+Original secret message must never be stored inside image directly.
+Only encrypted ciphertext should be embedded.
+
+---
+
+# 7. EXACT DECRYPTION WORKFLOW
+
+When Decoding:
+
+Step 1:
+User uploads encoded image.
+
+Step 2:
+Extract metadata.
+
+Step 3:
+Detect encryption method automatically.
+
+Step 4:
+Request password.
+
+Step 5:
+Use stored:
+
+* Salt
+* IV
+* Metadata
+
+Step 6:
+Derive key again.
+
+Step 7:
+Decrypt ciphertext.
+
+Step 8:
+Display original message.
+
+Requirements:
+
+If password incorrect:
+
+* Show proper error.
+
+If metadata missing:
+
+* Show warning.
+
+If unsupported encryption:
+
+* Show warning.
+
+If file corrupted:
+
+* Show warning.
+
+Never crash application.
+
+---
+
+# 8. Decode Module Improvements
+
+Highest Priority Feature.
+
+Improve:
+
+* Decode speed.
+* Decode accuracy.
+* Error handling.
+* Hidden data detection.
+
+Support:
+
+* PixelPeeks encoded files.
+* Common LSB PNG files.
+* Common LSB BMP files.
+* Images encoded by other steganography applications when possible.
+
+Add:
+
+* Copy result button.
+* Download result button.
+* Detailed decode report.
+* Encryption method detection display.
+
+---
+
+# 9. Steganalysis Improvements
+
+Add:
+
+* Hidden Data Probability Score.
+* Entropy Analysis.
+* Metadata Analysis.
+* LSB Analysis.
+* Pattern Detection.
+* Security Risk Indicators.
+
+Generate visual analysis report.
+
+---
+
+# 10. Login & Signup UI Improvements
+
+Improve:
+
+* Login page.
+* Signup page.
+* OTP verification page.
+* Forgot password page.
+
+Add:
+
+* Password strength meter.
+* Show/hide password.
+* Loading indicators.
+* Better validations.
+* Better error handling.
+* Mobile responsiveness.
+
+---
+
+# 11. Dark Mode Fixes
+
+Fix text visibility issues.
+
+Check:
+
+* Home
+* Login
+* Signup
+* OTP
+* Encode
+* Decode
+* Dashboard
+* Analysis
+* Settings
+
+All text must be readable.
+
+---
+
+# 12. Dashboard Improvements
+
+Add:
+
+* Recent encode activity.
+* Recent decode activity.
+* Security tips.
+* Encryption statistics.
+* User activity overview.
+* Quick actions.
+
+---
+
+# 13. File Handling Improvements
+
+Add:
+
+* File preview.
+* File information.
+* Upload validation.
+* Progress indicators.
+* Better drag-and-drop support.
+
+---
+
+# 14. Security Requirements
+
+Use:
+
+* AES-256-GCM as default.
+* Argon2 preferred.
+* PBKDF2 fallback.
+
+Never:
+
+* Store plaintext passwords.
+* Store plaintext OTPs.
+* Store plaintext secret messages.
+
+Always:
+
+* Hash passwords.
+* Hash OTPs.
+* Encrypt secret messages before embedding.
+
+---
+
+# 15. Final Testing
+
+Test:
+
+* Signup
+* OTP verification
+* Login 2FA
+* Forgot password
+* Resend OTP
+* Encryption methods
+* Encode
+* Decode
+* Steganalysis
+* Dark mode
+* Mobile responsiveness
+
+Goal:
+
+Transform PixelPeeks into a professional cybersecurity-grade steganography platform with secure authentication, email OTP verification, 2FA login, advanced encryption options, reliable decoding, powerful steganalysis, and polished user experience.

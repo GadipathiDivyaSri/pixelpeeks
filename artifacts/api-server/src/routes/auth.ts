@@ -38,7 +38,23 @@ function userToProfile(user: { id: number; name: string; email: string; createdA
   });
 }
 
-// POST /auth/register
+// ── Pending registrations (in-memory, keyed by email) ─────────────────────────
+interface PendingRegistration {
+  name: string;
+  passwordHash: string;
+  expiresAt: Date;
+}
+const pendingRegistrations = new Map<string, PendingRegistration>();
+
+// Purge expired entries every 5 minutes
+setInterval(() => {
+  const now = new Date();
+  for (const [email, entry] of pendingRegistrations) {
+    if (entry.expiresAt < now) pendingRegistrations.delete(email);
+  }
+}, 5 * 60_000).unref();
+
+// POST /auth/register — sends OTP before creating account
 router.post("/auth/register", async (req, res): Promise<void> => {
   const parsed = RegisterBody.safeParse(req.body);
   if (!parsed.success) {
@@ -48,24 +64,35 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   const { name, email, password } = parsed.data;
   const normalizedEmail = email.toLowerCase().trim();
 
-  const existing = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail));
+  // Reject if account already exists
+  const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, normalizedEmail));
   if (existing.length > 0) {
     res.status(409).json({ error: "An account with this email already exists." });
     return;
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  const [user] = await db
-    .insert(usersTable)
-    .values({ name, email: normalizedEmail, passwordHash })
-    .returning();
 
-  const token = signToken(user.id);
-  logger.info({ userId: user.id }, "User registered");
-  res.status(201).json({ token, user: userToProfile(user) });
+  // Store pending registration for 10 minutes
+  pendingRegistrations.set(normalizedEmail, {
+    name,
+    passwordHash,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+  });
+
+  try {
+    await sendOtp(normalizedEmail, "register");
+    const pendingToken = signPendingToken(normalizedEmail);
+    logger.info({ email: normalizedEmail }, "Registration OTP sent");
+    res.json({ requiresOtp: true, pendingToken });
+  } catch (err) {
+    pendingRegistrations.delete(normalizedEmail);
+    const msg = err instanceof Error ? err.message : "Could not send verification email.";
+    res.status(429).json({ error: msg });
+  }
 });
 
-// POST /auth/login — returns requiresOtp:true when credentials are valid (2FA required)
+// POST /auth/login — returns OTP challenge
 router.post("/auth/login", async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) {
@@ -76,7 +103,6 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   const normalizedEmail = email.toLowerCase().trim();
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail));
-
   if (!user) {
     res.status(401).json({ error: "Invalid email or password." });
     return;
@@ -89,17 +115,17 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
 
   try {
-    const { devOtp } = await sendOtp(normalizedEmail, "login");
+    await sendOtp(normalizedEmail, "login");
     const pendingToken = signPendingToken(normalizedEmail);
     logger.info({ userId: user.id }, "Login OTP sent");
-    res.json({ requiresOtp: true, pendingToken, ...(devOtp ? { devOtp } : {}) });
+    res.json({ requiresOtp: true, pendingToken });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Could not send OTP.";
     res.status(429).json({ error: msg });
   }
 });
 
-// POST /auth/send-otp — resend OTP (used by the verify page for resend)
+// POST /auth/send-otp — resend OTP
 router.post("/auth/send-otp", async (req, res): Promise<void> => {
   const parsed = SendOtpBody.safeParse(req.body);
   if (!parsed.success) {
@@ -117,9 +143,18 @@ router.post("/auth/send-otp", async (req, res): Promise<void> => {
     }
   }
 
+  if (purpose === "register") {
+    const pending = pendingRegistrations.get(normalizedEmail);
+    if (!pending || pending.expiresAt < new Date()) {
+      pendingRegistrations.delete(normalizedEmail);
+      res.status(400).json({ error: "Registration session expired. Please fill in the signup form again." });
+      return;
+    }
+  }
+
   try {
-    const { devOtp } = await sendOtp(normalizedEmail, purpose);
-    res.json({ message: "OTP sent.", ...(devOtp ? { devOtp } : {}) });
+    await sendOtp(normalizedEmail, purpose);
+    res.json({ message: "Verification code sent to your email." });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Could not send OTP.";
     res.status(429).json({ error: msg });
@@ -136,15 +171,16 @@ router.post("/auth/verify-otp", async (req, res): Promise<void> => {
   const { email, otp, purpose, pendingToken } = parsed.data;
   const normalizedEmail = email.toLowerCase().trim();
 
-  if (purpose === "login" && pendingToken) {
+  // Validate pending token for login and register
+  if ((purpose === "login" || purpose === "register") && pendingToken) {
     try {
       const payload = jwt.verify(pendingToken, PENDING_JWT_SECRET) as { email: string; pending: boolean };
       if (payload.email !== normalizedEmail || !payload.pending) {
-        res.status(401).json({ error: "Invalid session. Please log in again." });
+        res.status(401).json({ error: "Invalid session. Please start again." });
         return;
       }
     } catch {
-      res.status(401).json({ error: "Session expired. Please log in again." });
+      res.status(401).json({ error: "Session expired. Please start again." });
       return;
     }
   }
@@ -154,6 +190,24 @@ router.post("/auth/verify-otp", async (req, res): Promise<void> => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Verification failed.";
     res.status(400).json({ error: msg });
+    return;
+  }
+
+  if (purpose === "register") {
+    const pending = pendingRegistrations.get(normalizedEmail);
+    if (!pending || pending.expiresAt < new Date()) {
+      pendingRegistrations.delete(normalizedEmail);
+      res.status(400).json({ error: "Registration session expired. Please register again." });
+      return;
+    }
+    const [user] = await db
+      .insert(usersTable)
+      .values({ name: pending.name, email: normalizedEmail, passwordHash: pending.passwordHash })
+      .returning();
+    pendingRegistrations.delete(normalizedEmail);
+    const token = signToken(user.id);
+    logger.info({ userId: user.id }, "User registered (email verified)");
+    res.status(201).json({ token, user: userToProfile(user) });
     return;
   }
 
@@ -197,15 +251,14 @@ router.post("/auth/forgot-password", async (req, res): Promise<void> => {
   const normalizedEmail = parsed.data.email.toLowerCase().trim();
 
   const [user] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, normalizedEmail));
-
   if (!user) {
     res.json({ message: "If that account exists, a verification code has been sent to your email." });
     return;
   }
 
   try {
-    const { devOtp } = await sendOtp(normalizedEmail, "forgot-password");
-    res.json({ message: "A verification code has been sent to your email.", ...(devOtp ? { devOtp } : {}) });
+    await sendOtp(normalizedEmail, "forgot-password");
+    res.json({ message: "A verification code has been sent to your email." });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Could not send OTP.";
     res.status(429).json({ error: msg });

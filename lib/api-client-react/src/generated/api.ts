@@ -20,7 +20,6 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  AuthResult,
   DecodeInput,
   DecodeResult,
   DetectInput,
@@ -144,11 +143,11 @@ export const getRegisterUrl = () => {
 }
 
 /**
- * @summary Register a new account
+ * @summary Register — sends OTP to email before creating account
  */
-export const register = async (registerBody: RegisterBody, options?: RequestInit): Promise<AuthResult> => {
+export const register = async (registerBody: RegisterBody, options?: RequestInit): Promise<LoginOtpPending> => {
 
-  return customFetch<AuthResult>(getRegisterUrl(),
+  return customFetch<LoginOtpPending>(getRegisterUrl(),
   {
     ...options,
     method: 'POST',
@@ -193,7 +192,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type RegisterMutationError = ErrorType<ErrorResponse>
 
     /**
- * @summary Register a new account
+ * @summary Register — sends OTP to email before creating account
  */
 export const useRegister = <TError = ErrorType<ErrorResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: BodyType<RegisterBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -655,6 +654,9 @@ formData.append(`file`, encodeInput.file);
 formData.append(`message`, encodeInput.message);
 if(encodeInput.key !== undefined) {
  formData.append(`key`, encodeInput.key);
+ }
+if(encodeInput.algorithm !== undefined) {
+ formData.append(`algorithm`, encodeInput.algorithm);
  }
 
   return customFetch<EncodeResult>(getEncodeFileUrl(),

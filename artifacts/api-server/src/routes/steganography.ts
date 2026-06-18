@@ -12,6 +12,7 @@ import {
   DetectSteganographyResponse,
 } from "@workspace/api-zod";
 import {
+  type EncryptAlgorithm,
   encryptPayload,
   decryptPayload,
   encodeImage,
@@ -38,12 +39,14 @@ const IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".
 const AUDIO_EXTS = new Set([".wav", ".mp3", ".aac", ".flac", ".ogg", ".m4a", ".opus", ".wma"]);
 const VIDEO_EXTS = new Set([".mp4", ".mov", ".webm", ".avi", ".mkv", ".mpeg", ".mpg", ".m4v", ".3gp"]);
 
+const VALID_ALGOS = new Set<EncryptAlgorithm>(["aes-256-gcm", "aes-256-cbc", "chacha20-poly1305", "triple-des"]);
+
 function detectCarrier(mimetype: string, originalname: string): Carrier {
   const ext = path.extname(originalname).toLowerCase();
   if (IMAGE_EXTS.has(ext) || mimetype.startsWith("image/")) return "image";
   if (AUDIO_EXTS.has(ext) || mimetype.startsWith("audio/")) return "audio";
   if (VIDEO_EXTS.has(ext) || mimetype.startsWith("video/")) return "video";
-  return "image"; // fallback
+  return "image";
 }
 
 function outputMime(carrier: Carrier): string {
@@ -72,15 +75,20 @@ router.post("/encode", upload.single("file"), async (req, res): Promise<void> =>
     return;
   }
   const key = req.body.key as string | undefined;
+  const rawAlgo = req.body.algorithm as string | undefined;
+  const algo: EncryptAlgorithm = (VALID_ALGOS.has(rawAlgo as EncryptAlgorithm) ? rawAlgo : "aes-256-gcm") as EncryptAlgorithm;
   const carrier = detectCarrier(file.mimetype, file.originalname);
   const start = Date.now();
 
   try {
     let payload: Buffer = Buffer.from(message, "utf-8");
+    let algorithmUsed: string | null = null;
+
     if (key && key.trim().length > 0) {
-      payload = Buffer.from(encryptPayload(payload, key.trim()));
+      payload = encryptPayload(payload, key.trim(), algo);
+      algorithmUsed = algo;
     }
-    // Wrap with PXPK_V1 signature so detection can identify PixelPeek-origin files
+
     payload = wrapWithPxpkSignature(payload);
 
     const fileExt = path.extname(file.originalname).toLowerCase() || ".wav";
@@ -97,7 +105,6 @@ router.post("/encode", upload.single("file"), async (req, res): Promise<void> =>
     const baseName = path.basename(file.originalname, path.extname(file.originalname));
     const filename = `${baseName}_encoded${outputExt(carrier)}`;
 
-    // Store encoded file temporarily in memory — return as base64 download URL
     const b64 = outBuf.toString("base64");
     const dataUrl = `data:${outputMime(carrier)};base64,${b64}`;
 
@@ -116,6 +123,7 @@ router.post("/encode", upload.single("file"), async (req, res): Promise<void> =>
       bytesUsed: payload.length,
       totalBytes: outBuf.length,
       timeSec,
+      algorithmUsed,
     }));
   } catch (err: unknown) {
     await db.insert(eventsTable).values({
@@ -152,22 +160,22 @@ router.post("/decode", upload.single("file"), async (req, res): Promise<void> =>
       rawPayload = decodeVideo(file.buffer);
     }
 
-    // Strip PXPK_V1 signature if present
     const unwrapped = tryUnwrapPxpkSignature(rawPayload);
     const innerPayload = unwrapped.valid ? unwrapped.payload : rawPayload;
 
     let message: string;
     let encrypted = false;
+    let algorithmUsed: string | null = null;
 
     if (key && key.trim().length > 0) {
       encrypted = true;
-      const plain = decryptPayload(innerPayload, key.trim());
+      const { plain, algorithm } = decryptPayload(innerPayload, key.trim());
       message = plain.toString("utf-8");
+      algorithmUsed = algorithm;
     } else {
       message = innerPayload.toString("utf-8");
     }
 
-    // Sanity check — if the result isn't printable it's likely wrong key
     if (!message || message.length === 0) {
       throw new Error("No hidden message found (or wrong key).");
     }
@@ -180,7 +188,7 @@ router.post("/decode", upload.single("file"), async (req, res): Promise<void> =>
       failed: false,
     });
 
-    res.json(DecodeFileResponse.parse({ message, carrier, encrypted }));
+    res.json(DecodeFileResponse.parse({ message, carrier, encrypted, algorithmUsed }));
   } catch (err: unknown) {
     await db.insert(eventsTable).values({
       operation: "decode",
@@ -216,8 +224,6 @@ router.post("/detect", upload.single("file"), async (req, res): Promise<void> =>
     }
 
     const { features, verdict, probability } = result;
-
-    // Store stego hits for STEGO + PIXELPEEK verdicts
     const dbVerdict = verdict === "PIXELPEEK" ? "STEGO" : verdict;
 
     await db.insert(eventsTable).values({
@@ -254,20 +260,12 @@ router.get("/stats", async (_req, res): Promise<void> => {
     .from(eventsTable)
     .groupBy(eventsTable.operation);
 
-  let totalOps = 0;
-  let encodes = 0;
-  let decodes = 0;
-  let peeks = 0;
-  let stegoHits = 0;
-
+  let totalOps = 0, encodes = 0, decodes = 0, peeks = 0, stegoHits = 0;
   for (const row of rows) {
     totalOps += row.count;
     if (row.operation === "encode") encodes = row.count;
     if (row.operation === "decode") decodes = row.count;
-    if (row.operation === "detect") {
-      peeks = row.count;
-      stegoHits = row.stegoHits;
-    }
+    if (row.operation === "detect") { peeks = row.count; stegoHits = row.stegoHits; }
   }
 
   res.json(GetStatsResponse.parse({ totalOps, encodes, decodes, peeks, stegoHits }));

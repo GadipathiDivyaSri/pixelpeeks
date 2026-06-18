@@ -25,8 +25,6 @@ export interface LoginBody {
 export interface LoginOtpPending {
   requiresOtp: boolean;
   pendingToken: string;
-  /** Only present in dev/demo mode when no SMTP is configured */
-  devOtp?: string;
 }
 
 export type SendOtpBodyPurpose = typeof SendOtpBodyPurpose[keyof typeof SendOtpBodyPurpose];
@@ -35,6 +33,7 @@ export type SendOtpBodyPurpose = typeof SendOtpBodyPurpose[keyof typeof SendOtpB
 export const SendOtpBodyPurpose = {
   login: 'login',
   'forgot-password': 'forgot-password',
+  register: 'register',
 } as const;
 
 export interface SendOtpBody {
@@ -44,8 +43,6 @@ export interface SendOtpBody {
 
 export interface SendOtpResult {
   message: string;
-  /** Only present in dev/demo mode when no SMTP is configured */
-  devOtp?: string;
 }
 
 export type VerifyOtpBodyPurpose = typeof VerifyOtpBodyPurpose[keyof typeof VerifyOtpBodyPurpose];
@@ -54,6 +51,7 @@ export type VerifyOtpBodyPurpose = typeof VerifyOtpBodyPurpose[keyof typeof Veri
 export const VerifyOtpBodyPurpose = {
   login: 'login',
   'forgot-password': 'forgot-password',
+  register: 'register',
 } as const;
 
 export interface VerifyOtpBody {
@@ -86,8 +84,6 @@ export interface ForgotPasswordBody {
 
 export interface ForgotPasswordResult {
   message: string;
-  /** Only present in dev/demo mode when no SMTP is configured */
-  devOtp?: string;
 }
 
 export interface ResetPasswordBody {
@@ -105,10 +101,21 @@ export interface AuthResult {
   user: UserProfile;
 }
 
+export type EncodeInputAlgorithm = typeof EncodeInputAlgorithm[keyof typeof EncodeInputAlgorithm];
+
+
+export const EncodeInputAlgorithm = {
+  'aes-256-gcm': 'aes-256-gcm',
+  'aes-256-cbc': 'aes-256-cbc',
+  'chacha20-poly1305': 'chacha20-poly1305',
+  'triple-des': 'triple-des',
+} as const;
+
 export interface EncodeInput {
   file: Blob;
   message: string;
   key?: string;
+  algorithm?: EncodeInputAlgorithm;
 }
 
 export type EncodeResultCarrier = typeof EncodeResultCarrier[keyof typeof EncodeResultCarrier];
@@ -127,6 +134,8 @@ export interface EncodeResult {
   bytesUsed: number;
   totalBytes: number;
   timeSec: number;
+  /** @nullable */
+  algorithmUsed?: string | null;
 }
 
 export interface DecodeInput {
@@ -147,6 +156,8 @@ export interface DecodeResult {
   message: string;
   carrier: DecodeResultCarrier;
   encrypted: boolean;
+  /** @nullable */
+  algorithmUsed?: string | null;
 }
 
 export interface DetectInput {

@@ -17,7 +17,7 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * @summary Register a new account
+ * @summary Register — sends OTP to email before creating account
  */
 
 export const registerBodyPasswordMin = 6;
@@ -28,6 +28,11 @@ export const RegisterBody = zod.object({
   "name": zod.string().min(1),
   "email": zod.string().email(),
   "password": zod.string().min(registerBodyPasswordMin)
+})
+
+export const RegisterResponse = zod.object({
+  "requiresOtp": zod.boolean(),
+  "pendingToken": zod.string()
 })
 
 
@@ -41,8 +46,7 @@ export const LoginBody = zod.object({
 
 export const LoginResponse = zod.object({
   "requiresOtp": zod.boolean(),
-  "pendingToken": zod.string(),
-  "devOtp": zod.string().optional().describe('Only present in dev\/demo mode when no SMTP is configured')
+  "pendingToken": zod.string()
 })
 
 
@@ -51,12 +55,11 @@ export const LoginResponse = zod.object({
  */
 export const SendOtpBody = zod.object({
   "email": zod.string().email(),
-  "purpose": zod.enum(['login', 'forgot-password'])
+  "purpose": zod.enum(['login', 'forgot-password', 'register'])
 })
 
 export const SendOtpResponse = zod.object({
-  "message": zod.string(),
-  "devOtp": zod.string().optional().describe('Only present in dev\/demo mode when no SMTP is configured')
+  "message": zod.string()
 })
 
 
@@ -71,7 +74,7 @@ export const verifyOtpBodyOtpMax = 6;
 export const VerifyOtpBody = zod.object({
   "email": zod.string().email(),
   "otp": zod.string().min(verifyOtpBodyOtpMin).max(verifyOtpBodyOtpMax),
-  "purpose": zod.enum(['login', 'forgot-password']),
+  "purpose": zod.enum(['login', 'forgot-password', 'register']),
   "pendingToken": zod.string().optional()
 })
 
@@ -95,8 +98,7 @@ export const ForgotPasswordBody = zod.object({
 })
 
 export const ForgotPasswordResponse = zod.object({
-  "message": zod.string(),
-  "devOtp": zod.string().optional().describe('Only present in dev\/demo mode when no SMTP is configured')
+  "message": zod.string()
 })
 
 
@@ -131,10 +133,13 @@ export const GetMeResponse = zod.object({
 /**
  * @summary Hide a message in a carrier file
  */
+export const encodeFileBodyAlgorithmDefault = `aes-256-gcm`;
+
 export const EncodeFileBody = zod.object({
   "file": zod.instanceof(File),
   "message": zod.string(),
-  "key": zod.string().optional()
+  "key": zod.string().optional(),
+  "algorithm": zod.enum(['aes-256-gcm', 'aes-256-cbc', 'chacha20-poly1305', 'triple-des']).default(encodeFileBodyAlgorithmDefault)
 })
 
 export const EncodeFileResponse = zod.object({
@@ -143,7 +148,8 @@ export const EncodeFileResponse = zod.object({
   "carrier": zod.enum(['image', 'audio', 'video']),
   "bytesUsed": zod.number(),
   "totalBytes": zod.number(),
-  "timeSec": zod.number()
+  "timeSec": zod.number(),
+  "algorithmUsed": zod.string().nullish()
 })
 
 
@@ -158,7 +164,8 @@ export const DecodeFileBody = zod.object({
 export const DecodeFileResponse = zod.object({
   "message": zod.string(),
   "carrier": zod.enum(['image', 'audio', 'video']),
-  "encrypted": zod.boolean()
+  "encrypted": zod.boolean(),
+  "algorithmUsed": zod.string().nullish()
 })
 
 

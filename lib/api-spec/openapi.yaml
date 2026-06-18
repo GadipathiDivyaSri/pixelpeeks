@@ -30,7 +30,7 @@ paths:
     post:
       operationId: register
       tags: [auth]
-      summary: Register a new account
+      summary: Register — sends OTP to email before creating account
       requestBody:
         required: true
         content:
@@ -38,12 +38,12 @@ paths:
             schema:
               $ref: "#/components/schemas/RegisterBody"
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OTP sent — verify email to complete registration
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResult"
+                $ref: "#/components/schemas/LoginOtpPending"
         "400":
           description: Validation error
           content:
@@ -350,9 +350,6 @@ components:
           type: boolean
         pendingToken:
           type: string
-        devOtp:
-          type: string
-          description: Only present in dev/demo mode when no SMTP is configured
       required: [requiresOtp, pendingToken]
 
     SendOtpBody:
@@ -363,7 +360,7 @@ components:
           format: email
         purpose:
           type: string
-          enum: [login, forgot-password]
+          enum: [login, forgot-password, register]
       required: [email, purpose]
 
     SendOtpResult:
@@ -371,9 +368,6 @@ components:
       properties:
         message:
           type: string
-        devOtp:
-          type: string
-          description: Only present in dev/demo mode when no SMTP is configured
       required: [message]
 
     VerifyOtpBody:
@@ -388,7 +382,7 @@ components:
           maxLength: 6
         purpose:
           type: string
-          enum: [login, forgot-password]
+          enum: [login, forgot-password, register]
         pendingToken:
           type: string
       required: [email, otp, purpose]
@@ -417,9 +411,6 @@ components:
       properties:
         message:
           type: string
-        devOtp:
-          type: string
-          description: Only present in dev/demo mode when no SMTP is configured
       required: [message]
 
     ResetPasswordBody:
@@ -472,6 +463,10 @@ components:
           type: string
         key:
           type: string
+        algorithm:
+          type: string
+          enum: [aes-256-gcm, aes-256-cbc, chacha20-poly1305, triple-des]
+          default: aes-256-gcm
       required: [file, message]
 
     EncodeResult:
@@ -490,6 +485,8 @@ components:
           type: integer
         timeSec:
           type: number
+        algorithmUsed:
+          type: ["string", "null"]
       required: [downloadUrl, filename, carrier, bytesUsed, totalBytes, timeSec]
 
     DecodeInput:
@@ -512,6 +509,8 @@ components:
           enum: [image, audio, video]
         encrypted:
           type: boolean
+        algorithmUsed:
+          type: ["string", "null"]
       required: [message, carrier, encrypted]
 
     DetectInput:
